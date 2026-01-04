@@ -398,15 +398,15 @@ export function GenerateInvoiceFromTimeDialog({
 
                   {/* Line Items Table */}
                   <div>
-                    <h3 className="font-semibold mb-2">Line Items</h3>
+                    <h3 className="font-semibold mb-2">Line Items Preview</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-muted/50">
                           <tr>
                             <th className="text-left p-3 text-sm font-medium">Description</th>
-                            <th className="text-right p-3 text-sm font-medium">Hours</th>
-                            <th className="text-right p-3 text-sm font-medium">Rate</th>
-                            <th className="text-right p-3 text-sm font-medium">Amount</th>
+                            <th className="text-right p-3 text-sm font-medium w-24">Qty</th>
+                            <th className="text-right p-3 text-sm font-medium w-28">Rate</th>
+                            <th className="text-right p-3 text-sm font-medium w-32">Amount</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -425,10 +425,36 @@ export function GenerateInvoiceFromTimeDialog({
                             </tr>
                           ))}
                         </tbody>
+                        <tfoot className="border-t bg-muted/30">
+                          <tr>
+                            <td colSpan={3} className="p-3 text-sm text-right">
+                              Subtotal
+                            </td>
+                            <td className="p-3 text-sm text-right font-medium">
+                              {formatCurrency(preview.subtotal)}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={3} className="p-3 text-sm text-right">
+                              Tax ({preview.taxRate}%)
+                            </td>
+                            <td className="p-3 text-sm text-right font-medium">
+                              {formatCurrency(preview.taxAmount)}
+                            </td>
+                          </tr>
+                          <tr className="border-t">
+                            <td colSpan={3} className="p-3 text-sm text-right font-semibold">
+                              Total
+                            </td>
+                            <td className="p-3 text-sm text-right text-lg font-bold">
+                              {formatCurrency(preview.total)}
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Billed entries: {preview.entriesCount}
+                      {preview.entriesCount} time {preview.entriesCount === 1 ? 'entry' : 'entries'} will be marked as billed
                     </p>
                   </div>
                 </>

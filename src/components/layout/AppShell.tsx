@@ -22,6 +22,7 @@ import {
   UsersRound,
   ChevronLeft,
   ChevronRight,
+  BarChart3,
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import { cn } from '@/lib/utils'
@@ -56,6 +57,7 @@ const iconMap: Record<string, any> = {
   Tasks: CheckSquare,
   'Time Tracking': Clock,
   Invoices: FileText,
+  Reports: BarChart3,
   Clients: Building2,
   Settings: Settings,
 }

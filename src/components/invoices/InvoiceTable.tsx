@@ -342,11 +342,9 @@ export function InvoiceTable({
 
       {/* Invoice Detail Drawer */}
       <InvoiceDetailDrawer
+        invoiceId={selectedInvoice?.id || null}
         open={showDetailDrawer}
-        onClose={() => setShowDetailDrawer(false)}
-        invoice={selectedInvoice}
-        onUpdateStatus={handleUpdateStatus}
-        onDelete={handleDelete}
+        onOpenChange={setShowDetailDrawer}
       />
 
       {/* Delete Confirmation Dialog */}

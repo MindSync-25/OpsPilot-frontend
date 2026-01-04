@@ -21,6 +21,7 @@ import TimeTracking from '@/pages/TimeTracking.tsx'
 import TimesheetDetailPage from '@/pages/TimesheetDetailPage.tsx'
 import LeaveRequestPage from '@/pages/LeaveRequestPage.tsx'
 import Invoices from '@/pages/Invoices.tsx'
+import Reports from '@/pages/Reports.tsx'
 import Settings from '@/pages/Settings.tsx'
 
 // Protected route wrapper
@@ -197,6 +198,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={[UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN]}>
             <Invoices />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <RoleGuard allowedRoles={[UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER]}>
+            <Reports />
           </RoleGuard>
         ),
       },

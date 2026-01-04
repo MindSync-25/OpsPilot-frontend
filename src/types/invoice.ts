@@ -1,11 +1,51 @@
 export type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED';
 
+export interface InvoiceUserInfo {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface InvoiceTaskInfo {
+  id: string;
+  title: string;
+}
+
+export interface InvoiceClientInfo {
+  id: string;
+  name: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
+export interface InvoiceProjectInfo {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export interface InvoiceSummary {
+  totalMinutes?: number;
+  totalBillableMinutes?: number;
+  entryCount?: number;
+  contributorsCount?: number;
+  tasksCount?: number;
+}
+
 export interface InvoiceItem {
   id?: string;
   description: string;
   quantity: number;
   unitPrice: number;
   amount?: number;
+  itemType?: string;
+  user?: InvoiceUserInfo;
+  task?: InvoiceTaskInfo;
+  rate?: number;
+  minutes?: number;
+  sourceTimeEntryIds?: string[];
 }
 
 export interface Invoice {
@@ -26,6 +66,17 @@ export interface Invoice {
   updatedAt: string;
   isOverdue: boolean;
   items: InvoiceItem[];
+  client?: InvoiceClientInfo;
+  project?: InvoiceProjectInfo;
+  createdBy?: InvoiceUserInfo;
+  billingPeriodStart?: string;
+  billingPeriodEnd?: string;
+  currencyCode?: string;
+  paymentTerms?: string;
+  sentAt?: string;
+  paidAt?: string;
+  cancelledAt?: string;
+  summary?: InvoiceSummary;
 }
 
 export interface CreateInvoiceRequest {
@@ -35,6 +86,10 @@ export interface CreateInvoiceRequest {
   dueDate?: string;
   taxRate?: number;
   notes?: string;
+  billingPeriodStart?: string;
+  billingPeriodEnd?: string;
+  currencyCode?: string;
+  paymentTerms?: string;
   items: {
     description: string;
     quantity: number;
@@ -49,6 +104,10 @@ export interface UpdateInvoiceRequest {
   dueDate?: string;
   taxRate?: number;
   notes?: string;
+  billingPeriodStart?: string;
+  billingPeriodEnd?: string;
+  currencyCode?: string;
+  paymentTerms?: string;
   items?: {
     description: string;
     quantity: number;
