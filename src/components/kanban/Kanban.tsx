@@ -24,8 +24,8 @@ export interface KanbanTask {
   id: string
   title: string
   description: string
-  status: 'todo' | 'in_progress' | 'done'
-  priority?: 'low' | 'medium' | 'high'
+  status: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+  priority?: 'low' | 'medium' | 'high' | 'urgent'
   assignee?: string
   assigneeUserId?: string | null
   dueDate?: string
@@ -33,30 +33,35 @@ export interface KanbanTask {
 
 interface KanbanProps {
   tasks: KanbanTask[]
-  onTaskMove: (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => void
+  onTaskMove: (taskId: string, newStatus: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done') => void
+  onTaskClick?: (taskId: string) => void
   userRole: string
   currentUserId?: string
 }
 
 const columns = [
-  { id: 'todo' as const, title: 'To Do', color: 'bg-slate-100 dark:bg-slate-800' },
-  { id: 'in_progress' as const, title: 'In Progress', color: 'bg-blue-50 dark:bg-blue-950' },
-  { id: 'done' as const, title: 'Done', color: 'bg-green-50 dark:bg-green-950' },
+  { id: 'todo' as const, title: 'To Do', color: 'bg-muted/50 dark:bg-muted/30' },
+  { id: 'in_progress' as const, title: 'In Progress', color: 'bg-[var(--accent-primary-weak)] dark:bg-[var(--accent-primary-weak)]' },
+  { id: 'blocked' as const, title: 'Blocked', color: 'bg-[var(--accent-danger)]/10 dark:bg-[var(--accent-danger)]/10' },
+  { id: 'review' as const, title: 'Review', color: 'bg-[var(--accent-warning)]/10 dark:bg-[var(--accent-warning)]/10' },
+  { id: 'done' as const, title: 'Done', color: 'bg-[var(--accent-success)]/10 dark:bg-[var(--accent-success)]/10' },
 ]
 
 const priorityColors = {
-  low: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
-  medium: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20',
-  high: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20',
+  low: 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)]',
+  medium: 'bg-[var(--accent-warning)]/10 text-[var(--accent-warning)] border-[var(--border-subtle)]',
+  high: 'bg-[var(--accent-warning)]/10 text-[var(--accent-warning)] border-[var(--border-subtle)]',
+  urgent: 'bg-[var(--accent-danger)]/10 text-[var(--accent-danger)] border-[var(--border-subtle)]',
 }
 
 interface TaskCardProps {
   task: KanbanTask
   userRole: string
   currentUserId?: string
+  onClick?: () => void
 }
 
-function TaskCard({ task, userRole, currentUserId }: TaskCardProps) {
+function TaskCard({ task, userRole, currentUserId, onClick }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: {
@@ -73,11 +78,22 @@ function TaskCard({ task, userRole, currentUserId }: TaskCardProps) {
 
   const isTaskAssignee = task.assigneeUserId === currentUserId
 
+  const handleCardClick = () => {
+    // Don't trigger if we're dragging
+    if (isDragging) {
+      return
+    }
+    onClick?.()
+  }
+
   return (
-    <div ref={setNodeRef} style={style}>
-      <Card className="mb-3 cursor-grab active:cursor-grabbing hover:shadow-lg hover:scale-[1.02] transition-all">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card 
+        className="mb-3 cursor-grab active:cursor-grabbing hover:shadow-lg hover:scale-[1.02] transition-all"
+        onClick={handleCardClick}
+      >
         <CardContent className="p-4">
-          <div className="flex items-start gap-2" {...attributes} {...listeners}>
+          <div className="flex items-start gap-2">
             <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-2">
               <h4 className="text-sm font-medium text-foreground leading-tight">
@@ -133,9 +149,10 @@ interface ColumnProps {
   tasks: KanbanTask[]
   userRole: string
   currentUserId?: string
+  onTaskClick?: (taskId: string) => void
 }
 
-function Column({ column, tasks, userRole, currentUserId }: ColumnProps) {
+function Column({ column, tasks, userRole, currentUserId, onTaskClick }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     data: {
@@ -177,6 +194,7 @@ function Column({ column, tasks, userRole, currentUserId }: ColumnProps) {
                 task={task} 
                 userRole={userRole}
                 currentUserId={currentUserId}
+                onClick={() => onTaskClick?.(task.id)}
               />
             ))
           )}
@@ -186,13 +204,13 @@ function Column({ column, tasks, userRole, currentUserId }: ColumnProps) {
   )
 }
 
-export default function Kanban({ tasks, onTaskMove, userRole, currentUserId }: KanbanProps) {
+export default function Kanban({ tasks, onTaskMove, onTaskClick, userRole, currentUserId }: KanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5, // Reduced from 8 to make it easier to drag
       },
     })
   )
@@ -266,7 +284,7 @@ export default function Kanban({ tasks, onTaskMove, userRole, currentUserId }: K
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {columns.map((column) => {
           const columnTasks = tasks.filter((task) => task.status === column.id)
           return (
@@ -276,6 +294,7 @@ export default function Kanban({ tasks, onTaskMove, userRole, currentUserId }: K
               tasks={columnTasks}
               userRole={userRole}
               currentUserId={currentUserId}
+              onTaskClick={onTaskClick}
             />
           )
         })}

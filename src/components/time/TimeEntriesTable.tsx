@@ -80,7 +80,7 @@ export function TimeEntriesTable({ entries, isLoading, onDelete }: TimeEntriesTa
                 </TableCell>
                 <TableCell>
                   {entry.isActive ? (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Active</Badge>
+                    <Badge variant="outline" className="bg-[var(--accent-success)]/10 text-[var(--accent-success)] border-[var(--border-subtle)]">Active</Badge>
                   ) : (
                     <Badge variant="outline">Stopped</Badge>
                   )}

@@ -1,7 +1,7 @@
 import { apiClient } from '@/lib/api'
 
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
-export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'REVIEW' | 'DONE'
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
 export interface Task {
   id: string
@@ -10,11 +10,17 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   projectId: string | null
+  projectName?: string | null
   phaseId: string | null
+  phaseName?: string | null
   assignedTo: string | null
+  assigneeName?: string | null
+  assigneeEmail?: string | null
+  teamId?: string | null
   dueDate: string | null
   storyPoints: string | null
   createdBy: string | null
+  creatorName?: string | null
   companyId: string
   createdAt: string
   updatedAt: string
@@ -27,6 +33,7 @@ export interface CreateTaskRequest {
   priority?: TaskPriority
   projectId: string  // Required field
   phaseId?: string
+  teamId?: string
   assignedTo?: string
   dueDate?: string
   storyPoints?: string
@@ -39,17 +46,29 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority
   projectId?: string
   phaseId?: string
+  teamId?: string
   assignedTo?: string
   dueDate?: string
   storyPoints?: string
 }
 
 export const taskService = {
-  async getTasks(projectId?: string, phaseId?: string): Promise<Task[]> {
+  async getTasks(filters?: { 
+    projectId?: string
+    phaseId?: string
+    teamId?: string
+    assignedTo?: string
+    status?: TaskStatus
+    createdBy?: string
+  }): Promise<Task[]> {
     let url = '/tasks'
     const params = new URLSearchParams()
-    if (projectId) params.append('projectId', projectId)
-    if (phaseId) params.append('phaseId', phaseId)
+    if (filters?.projectId) params.append('projectId', filters.projectId)
+    if (filters?.phaseId) params.append('phaseId', filters.phaseId)
+    if (filters?.teamId) params.append('teamId', filters.teamId)
+    if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo)
+    if (filters?.status) params.append('status', filters.status)
+    if (filters?.createdBy) params.append('createdBy', filters.createdBy)
     if (params.toString()) url += `?${params.toString()}`
     
     const response = await apiClient.get<Task[]>(url)
@@ -77,7 +96,7 @@ export const taskService = {
   },
 
   async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const response = await apiClient.put<Task>(`/tasks/${id}`, { status })
+    const response = await apiClient.patch<Task>(`/tasks/${id}`, { status })
     return response.data
   },
 

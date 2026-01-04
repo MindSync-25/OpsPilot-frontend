@@ -60,28 +60,28 @@ export function SubtaskDetailDialog({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'DONE':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       case 'IN_PROGRESS':
-        return 'bg-blue-500'
+        return 'bg-[var(--accent-primary)]'
       case 'TODO':
-        return 'bg-gray-500'
+        return 'bg-muted'
       default:
-        return 'bg-gray-500'
+        return 'bg-muted'
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'URGENT':
-        return 'bg-red-500'
+        return 'bg-[var(--accent-danger)]'
       case 'HIGH':
-        return 'bg-orange-500'
+        return 'bg-[var(--accent-warning)]'
       case 'MEDIUM':
-        return 'bg-yellow-500'
+        return 'bg-[var(--accent-primary)]'
       case 'LOW':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       default:
-        return 'bg-gray-500'
+        return 'bg-muted'
     }
   }
 

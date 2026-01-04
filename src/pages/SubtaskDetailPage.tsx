@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Calendar, User, Pencil, Trash2, ArrowLeft, Plus, Upload } from 'lucide-react'
+import { Loader2, Calendar, User, Pencil, Trash2, ArrowLeft, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { subtaskService, type Subtask } from '@/services/subtaskService'
 import { userService } from '@/services/userService'
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CommentSection } from '@/components/common/CommentSection'
+import { AttachmentSection } from '@/components/common/AttachmentSection'
 import { SubtaskFormDialog } from '@/components/tasks/SubtaskFormDialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { format } from 'date-fns'
@@ -116,9 +117,9 @@ export default function SubtaskDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'DONE':
-        return 'bg-green-500/10 text-green-500 border-green-500/20'
+        return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)] border-[var(--border-subtle)]'
       case 'IN_PROGRESS':
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+        return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)]'
       case 'TODO':
         return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
       default:
@@ -131,11 +132,11 @@ export default function SubtaskDetailPage() {
       case 'URGENT':
         return 'bg-red-500/10 text-red-500 border-red-500/20'
       case 'HIGH':
-        return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+        return 'bg-[var(--accent-warning)]/10 text-[var(--accent-warning)] border-[var(--border-subtle)]'
       case 'MEDIUM':
         return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
       case 'LOW':
-        return 'bg-green-500/10 text-green-500 border-green-500/20'
+        return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)]'
       default:
         return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
     }
@@ -157,7 +158,7 @@ export default function SubtaskDetailPage() {
 
   if (!subtask) {
     return (
-      <div className="p-8">
+      <div className="p-4">
         <div className="text-center">
           <p className="text-lg text-muted-foreground">Subtask not found</p>
           <Button onClick={() => navigate(`/app/projects/${projectId}/tasks/${taskId}`)} className="mt-4">
@@ -169,7 +170,7 @@ export default function SubtaskDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
+    <div className="container mx-auto p-4 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
@@ -200,92 +201,81 @@ export default function SubtaskDetailPage() {
           <span>Subtask</span>
         </div>
         <div className="flex items-start gap-3 mb-3">
-          <h1 className="text-3xl font-bold flex-1">{subtask.title}</h1>
+          <h1 className="text-2xl font-bold flex-1">{subtask.title}</h1>
           <Badge className={getStatusColor(subtask.status)}>
             {subtask.status}
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Description</CardTitle>
-                {!isEditingDescription ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setDescriptionText(subtask.description || '')
-                      setIsEditingDescription(true)
-                    }}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
+          {/* Description - Only show if has content or is being edited */}
+          {(subtask.description || isEditingDescription) && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Description</CardTitle>
+                  {!isEditingDescription ? (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setIsEditingDescription(false)
-                        setDescriptionText('')
+                        setDescriptionText(subtask.description || '')
+                        setIsEditingDescription(true)
                       }}
                     >
-                      Cancel
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => updateDescriptionMutation.mutate(descriptionText)}
-                      disabled={updateDescriptionMutation.isPending}
-                    >
-                      {updateDescriptionMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : null}
-                      Save
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditingDescription(false)
+                          setDescriptionText('')
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => updateDescriptionMutation.mutate(descriptionText)}
+                        disabled={updateDescriptionMutation.isPending}
+                      >
+                        {updateDescriptionMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : null}
+                        Save
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isEditingDescription ? (
+                  <Textarea
+                    value={descriptionText}
+                    onChange={(e) => setDescriptionText(e.target.value)}
+                    placeholder="Enter subtask description..."
+                    className="min-h-[100px]"
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {subtask.description}
+                  </p>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isEditingDescription ? (
-                <Textarea
-                  value={descriptionText}
-                  onChange={(e) => setDescriptionText(e.target.value)}
-                  placeholder="Enter subtask description..."
-                  className="min-h-[120px]"
-                />
-              ) : subtask.description ? (
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {subtask.description}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  No description provided
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Attachments */}
+          {/* Attachments - Compact */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Attachments</CardTitle>
-              <Button size="sm" variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No attachments yet
-              </p>
+            <CardContent className="pt-4 pb-4">
+              {subtaskId && <AttachmentSection entityType="SUBTASK" entityId={subtaskId} />}
             </CardContent>
           </Card>
 
@@ -406,10 +396,10 @@ export default function SubtaskDetailPage() {
 
           {/* Comments */}
           <Card>
-            <CardHeader>
-              <CardTitle>Comments</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Comments</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <CommentSection entityType="SUBTASK" entityId={subtaskId!} />
             </CardContent>
           </Card>

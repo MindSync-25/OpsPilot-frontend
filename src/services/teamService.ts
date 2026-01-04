@@ -36,7 +36,9 @@ export const teamService = {
   },
 
   async updateTeam(id: string, data: Partial<CreateTeamRequest>): Promise<Team> {
+    console.log('teamService.updateTeam called with:', { id, data })
     const response = await apiClient.put(`/teams/${id}`, data)
+    console.log('teamService.updateTeam response:', response.data)
     return response.data
   },
 

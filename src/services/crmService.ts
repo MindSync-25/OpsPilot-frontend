@@ -1,3 +1,6 @@
+import type { CreateClientRequest } from './clientService'
+import { apiClient } from '@/lib/api'
+
 export interface UpdateCrmClientRequest {
   name?: string;
   contactName?: string;
@@ -8,9 +11,8 @@ export interface UpdateCrmClientRequest {
   leadStage?: string;
   notes?: string;
   nextFollowUp?: string;
+  ownerId?: string;
 }
-import type { CreateClientRequest } from './clientService'
-import { apiClient } from '@/lib/api'
 
 export interface CrmClient {
   id: string
@@ -20,9 +22,11 @@ export interface CrmClient {
   email?: string | null
   phone?: string | null
   address?: string | null
+  status?: string | null
   leadStage: string
   notes?: string | null
   nextFollowUp?: string | null
+  ownerId?: string | null
   ownerName?: string | null
   createdAt?: string | null
   updatedAt?: string | null
@@ -40,6 +44,7 @@ export const crmService = {
         email: item.email || null,
         phone: item.phone || null,
         address: item.address || null,
+        status: item.status || null,
         leadStage: item.leadStage,
         notes: item.notes || null,
         nextFollowUp: item.nextFollowUp || null,
@@ -58,6 +63,7 @@ export const crmService = {
       email: item.email || null,
       phone: item.phone || null,
       address: item.address || null,
+      status: item.status || null,
       leadStage: item.leadStage,
       notes: item.notes || null,
       nextFollowUp: item.nextFollowUp || null,
@@ -71,11 +77,13 @@ export const crmService = {
     const item = response.data
     return {
       id: item.id,
+      clientId: item.clientId,
       name: item.name,
       contactName: item.contactName || null,
       email: item.email || null,
       phone: item.phone || null,
       address: item.address || null,
+      status: item.status || null,
       leadStage: item.leadStage,
       notes: item.notes || null,
       nextFollowUp: item.nextFollowUp || null,

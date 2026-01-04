@@ -48,7 +48,7 @@ export function PhaseDetailDialog({
   // Fetch tasks in this phase
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', projectId, phaseId],
-    queryFn: () => taskService.getTasks(projectId, phaseId),
+    queryFn: () => taskService.getTasks({ projectId, phaseId }),
     enabled: open && !!phaseId,
   })
 

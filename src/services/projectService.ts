@@ -39,6 +39,9 @@ export interface Project {
   progressPercent?: number
   totalHours?: number
   billableHours?: number
+  teamMemberCount?: number
+  phaseCount?: number
+  activePhaseCount?: number
 }
 
 export interface CreateProjectRequest {

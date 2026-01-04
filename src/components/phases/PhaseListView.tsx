@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Plus, FolderKanban, Users, Search, X } from 'lucide-react'
+import { useOnboarding } from '@/contexts/OnboardingContext'
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip'
 import { phaseService, type Phase } from '@/services/phaseService'
 import { teamService } from '@/services/teamService'
 import { Button } from '@/components/ui/button'
@@ -17,6 +19,7 @@ interface PhaseListViewProps {
 
 export function PhaseListView({ projectId }: PhaseListViewProps) {
   const navigate = useNavigate()
+  const { shouldShowOnboarding, completedSteps } = useOnboarding()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -103,10 +106,20 @@ export function PhaseListView({ projectId }: PhaseListViewProps) {
             Manage project phases and milestones
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Phase
-        </Button>
+        <div className="relative">
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Phase
+          </Button>
+          {shouldShowOnboarding && !completedSteps.includes('phase') && (
+            <OnboardingTooltip
+              stepId="phase-create"
+              title="Add Project Phases"
+              description="Break down your project into phases to organize work. Assign teams and track milestones."
+              position="bottom"
+            />
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}

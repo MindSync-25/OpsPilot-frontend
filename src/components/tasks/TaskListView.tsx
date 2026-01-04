@@ -37,7 +37,7 @@ export function TaskListView({ projectId }: TaskListViewProps) {
 
   const { data: allTasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', projectId],
-    queryFn: () => taskService.getTasks(projectId),
+    queryFn: () => taskService.getTasks({ projectId }),
   })
 
   const { data: users = [] } = useQuery({
@@ -70,28 +70,28 @@ export function TaskListView({ projectId }: TaskListViewProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'TODO':
-        return 'bg-gray-500'
+        return 'bg-muted'
       case 'IN_PROGRESS':
-        return 'bg-blue-500'
+        return 'bg-[var(--accent-primary)]'
       case 'IN_REVIEW':
-        return 'bg-purple-500'
+        return 'bg-[var(--accent-warning)]'
       case 'DONE':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       default:
-        return 'bg-gray-500'
+        return 'bg-muted'
     }
   }
 
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'HIGH':
-        return 'text-red-600'
+        return 'text-[var(--accent-danger)]'
       case 'MEDIUM':
-        return 'text-yellow-600'
+        return 'text-[var(--accent-warning)]'
       case 'LOW':
-        return 'text-green-600'
+        return 'text-[var(--accent-success)]'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 

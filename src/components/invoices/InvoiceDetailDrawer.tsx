@@ -35,9 +35,9 @@ const getStatusColor = (status: string) => {
     case 'DRAFT':
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     case 'SENT':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)]';
     case 'PAID':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)]';
     case 'OVERDUE':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
     case 'CANCELLED':

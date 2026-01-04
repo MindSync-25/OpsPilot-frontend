@@ -190,12 +190,12 @@ export default function Team() {
 
       {/* Current User Profile */}
       {currentUserData && (
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg shadow-sm border border-primary/20 p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5" />
+        <div className="bg-gradient-to-r from-[var(--accent-primary-weak)] to-[var(--accent-primary-weak)] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--accent-primary)]/20 p-4">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4" />
             Your Profile
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
               <p className="font-medium">{currentUserData.name}</p>
@@ -237,48 +237,48 @@ export default function Team() {
       )}
 
       {/* Team stats */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
-        <div className="bg-card rounded-lg shadow-sm border p-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="bg-card rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--border-subtle)] p-4">
           <div className="flex items-center">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Users className="w-6 h-6 text-primary" />
+            <div className="p-3 bg-[var(--accent-primary-weak)] rounded-lg">
+              <Users className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Total Members</p>
-              <p className="text-2xl font-bold">{isLoading ? '-' : roleCounts.total}</p>
+              <p className="text-xs font-medium text-muted-foreground">Total Members</p>
+              <p className="text-xl font-bold">{isLoading ? '-' : roleCounts.total}</p>
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-lg shadow-sm border p-6">
+        <div className="bg-card rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--border-subtle)] p-4">
           <div className="flex items-center">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="p-3 bg-[var(--accent-primary-weak)] rounded-lg">
+              <Users className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Admins</p>
-              <p className="text-2xl font-bold">{isLoading ? '-' : roleCounts.admin}</p>
+              <p className="text-xs font-medium text-muted-foreground">Admins</p>
+              <p className="text-xl font-bold">{isLoading ? '-' : roleCounts.admin}</p>
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-lg shadow-sm border p-6">
+        <div className="bg-card rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--border-subtle)] p-4">
           <div className="flex items-center">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-[var(--accent-primary-weak)] rounded-lg">
+              <Users className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Users</p>
-              <p className="text-2xl font-bold">{isLoading ? '-' : roleCounts.user}</p>
+              <p className="text-xs font-medium text-muted-foreground">Users</p>
+              <p className="text-xl font-bold">{isLoading ? '-' : roleCounts.user}</p>
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-lg shadow-sm border p-6">
+        <div className="bg-card rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--border-subtle)] p-4">
           <div className="flex items-center">
-            <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
-              <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <div className="p-3 bg-[var(--accent-primary-weak)] rounded-lg">
+              <Users className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground">Super Users</p>
-              <p className="text-2xl font-bold">{isLoading ? '-' : roleCounts.superUser}</p>
+              <p className="text-xs font-medium text-muted-foreground">Super Users</p>
+              <p className="text-xl font-bold">{isLoading ? '-' : roleCounts.superUser}</p>
             </div>
           </div>
         </div>
@@ -371,7 +371,7 @@ export default function Team() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[var(--accent-primary-weak)] text-[var(--accent-primary)]">
                       {member.role}
                     </span>
                   </td>
@@ -379,7 +379,7 @@ export default function Team() {
                     {member.designation || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[var(--accent-success)]/10 text-[var(--accent-success)">
                       {member.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>

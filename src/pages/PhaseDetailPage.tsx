@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CommentSection } from '@/components/common/CommentSection'
+import { AttachmentSection } from '@/components/common/AttachmentSection'
 import { PhaseFormDialog } from '@/components/phases/PhaseFormDialog'
 import { format } from 'date-fns'
 import {
@@ -44,7 +45,7 @@ export default function PhaseDetailPage() {
   // Fetch tasks for this phase
   const { data: allTasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', projectId],
-    queryFn: () => taskService.getTasks(projectId!),
+    queryFn: () => taskService.getTasks({ projectId: projectId! }),
     enabled: !!projectId,
   })
 
@@ -118,9 +119,9 @@ export default function PhaseDetailPage() {
       case 'TODO':
         return 'bg-gray-500'
       case 'ACTIVE':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       case 'COMPLETED':
-        return 'bg-blue-500'
+        return 'bg-[var(--accent-primary)]'
       case 'ARCHIVED':
         return 'bg-gray-500'
       default:
@@ -135,7 +136,7 @@ export default function PhaseDetailPage() {
       case 'MEDIUM':
         return 'bg-yellow-500'
       case 'LOW':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       default:
         return 'bg-gray-500'
     }
@@ -152,7 +153,7 @@ export default function PhaseDetailPage() {
   if (!phase) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h2 className="text-2xl font-bold mb-2">Phase not found</h2>
+        <h2 className="text-xl font-bold mb-2">Phase not found</h2>
         <Button onClick={() => navigate(`/app/projects/${projectId}`)}>
           Back to Project
         </Button>
@@ -161,7 +162,7 @@ export default function PhaseDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="container mx-auto p-4 max-w-7xl">
       {/* Header with back button */}
       <div className="flex items-center gap-4 mb-6">
         <Button
@@ -194,14 +195,14 @@ export default function PhaseDetailPage() {
       {/* Phase Title and Status */}
       <div className="mb-6">
         <div className="flex items-start gap-3 mb-3">
-          <h1 className="text-3xl font-bold flex-1">{phase.name}</h1>
+          <h1 className="text-2xl font-bold flex-1">{phase.name}</h1>
           <Badge className={getStatusColor(phase.status)}>
             {phase.status}
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
@@ -269,21 +270,8 @@ export default function PhaseDetailPage() {
 
           {/* Attachments */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Attachments</CardTitle>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Upload
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">No attachments yet</p>
-                <p className="text-xs mt-1">Upload documents and images to attach to this phase</p>
-              </div>
-              {/* TODO: Implement file upload functionality with backend support */}
+            <CardContent className="pt-6">
+              {phaseId && <AttachmentSection entityType="PHASE" entityId={phaseId} />}
             </CardContent>
           </Card>
 
@@ -393,24 +381,48 @@ export default function PhaseDetailPage() {
               {/* Assigned Team */}
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Assigned Team</p>
-                <Select
-                  value={phase.teamId || 'NO_TEAM'}
-                  onValueChange={(value) => {
-                    updateTeamMutation.mutate(value === 'NO_TEAM' ? undefined : value)
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NO_TEAM">No Team</SelectItem>
-                    {teams.map(team => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {phase.teamName ? (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">{phase.teamName}</p>
+                    <Select
+                      value={phase.teamId || 'NO_TEAM'}
+                      onValueChange={(value) => {
+                        updateTeamMutation.mutate(value === 'NO_TEAM' ? undefined : value)
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Change team..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NO_TEAM">No Team</SelectItem>
+                        {teams.map(team => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <Select
+                    value={phase.teamId || 'NO_TEAM'}
+                    onValueChange={(value) => {
+                      updateTeamMutation.mutate(value === 'NO_TEAM' ? undefined : value)
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NO_TEAM">No Team</SelectItem>
+                      {teams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* Sort Order */}

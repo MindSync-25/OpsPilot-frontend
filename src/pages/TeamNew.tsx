@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Plus, Users, Loader2, AlertCircle, Building2, Trash2, Edit, RefreshCw, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useOnboarding } from '@/contexts/OnboardingContext'
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip'
 import PageHeader from '@/components/common/PageHeader'
 import ContentSection from '@/components/common/ContentSection'
 import { Button } from '@/components/ui/button'
@@ -48,6 +50,7 @@ const createUserSchema = z.object({
   role: z.string().min(1, 'Role is required'),
   teamId: z.string().optional(),
   designation: z.string().optional(),
+  hourlyRate: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
 })
 
@@ -55,6 +58,7 @@ type CreateTeamFormData = z.infer<typeof createTeamSchema>
 type CreateUserFormData = z.infer<typeof createUserSchema>
 
 export default function TeamNew() {
+  const { shouldShowOnboarding, completedSteps } = useOnboarding()
   const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false)
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
   const [isAssignMemberDialogOpen, setIsAssignMemberDialogOpen] = useState(false)
@@ -133,6 +137,7 @@ export default function TeamNew() {
       role: creatableRoles[0] || '',
       teamId: undefined,
       designation: '',
+      hourlyRate: '',
       password: '',
     },
   })
@@ -196,9 +201,12 @@ export default function TeamNew() {
 
   // Update team mutation
   const updateTeamMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateTeamRequest> }) =>
-      teamService.updateTeam(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateTeamRequest> }) => {
+      console.log('updateTeamMutation mutationFn called with:', { id, data })
+      return teamService.updateTeam(id, data)
+    },
     onSuccess: () => {
+      console.log('Team update successful')
       queryClient.invalidateQueries({ queryKey: ['teams'] })
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success('Team updated successfully')
@@ -207,6 +215,7 @@ export default function TeamNew() {
       teamForm.reset()
     },
     onError: (error: any) => {
+      console.error('Team update failed:', error)
       toast.error(error.response?.data?.message || 'Failed to update team')
     },
   })
@@ -245,6 +254,7 @@ export default function TeamNew() {
       role: data.role,
       teamId: teamIdToAssign || undefined,
       designation: data.designation || undefined,
+      hourlyRate: data.hourlyRate ? parseFloat(data.hourlyRate) : undefined,
     }
     if (data.password && data.password.trim()) {
       payload.password = data.password
@@ -262,6 +272,7 @@ export default function TeamNew() {
       // SUPER_USER cannot be assigned to teams
       teamId: data.role === UserRole.SUPER_USER ? undefined : data.teamId,
       designation: data.designation || undefined,
+      hourlyRate: data.hourlyRate ? parseFloat(data.hourlyRate) : undefined,
     }
     updateUserMutation.mutate({ id: selectedMember.id, data: payload })
   }
@@ -280,7 +291,11 @@ export default function TeamNew() {
   }
 
   const onEditTeam = (data: CreateTeamFormData) => {
-    if (!selectedTeam) return
+    if (!selectedTeam) {
+      console.error('No team selected for editing')
+      return
+    }
+    console.log('Updating team:', selectedTeam.id, 'with data:', data)
     updateTeamMutation.mutate({ id: selectedTeam.id, data })
   }
 
@@ -553,15 +568,15 @@ export default function TeamNew() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case UserRole.TOP_USER:
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
+        return 'bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]'
       case UserRole.SUPER_USER:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+        return 'bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]'
       case UserRole.ADMIN:
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+        return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)]'
       case UserRole.USER:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+        return 'bg-muted text-muted-foreground'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -573,10 +588,20 @@ export default function TeamNew() {
         primaryAction={
           <div className="flex gap-2">
             {canCreateUsers && (
-              <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Member
-              </Button>
+              <div className="relative">
+                <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Member
+                </Button>
+                {shouldShowOnboarding && !completedSteps.includes('team') && (
+                  <OnboardingTooltip
+                    stepId="team-create"
+                    title="Add Your First Team Member"
+                    description="Click here to invite team members and start collaborating. You can assign roles and manage their permissions."
+                    position="bottom"
+                  />
+                )}
+              </div>
             )}
             {canCreateTeams && (
               <Button onClick={() => setIsCreateTeamDialogOpen(true)}>
@@ -598,12 +623,12 @@ export default function TeamNew() {
       />
 
       {currentUser && (
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg shadow-sm border border-primary/20 p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5" />
+      <div className="bg-gradient-to-r from-[var(--accent-primary-weak)] to-[var(--accent-primary-weak)] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-[var(--accent-primary)]/20 p-4 mb-6">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4" />
             Your Profile
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
               <p className="font-medium">{currentUser.name}</p>
@@ -640,7 +665,7 @@ export default function TeamNew() {
       {role === UserRole.TOP_USER && !usersLoading && filteredAndSortedData.superUsers.length > 0 && (
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10 border-blue-200 dark:border-blue-800">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between text-blue-700 dark:text-blue-400">
+            <CardTitle className="flex items-center justify-between text-[var(--accent-primary)]">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 Super Users
@@ -659,8 +684,8 @@ export default function TeamNew() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                      <div className="w-10 h-10 rounded-full bg-[var(--accent-primary-weak)] flex items-center justify-center">
+                        <span className="text-sm font-medium text-[var(--accent-primary)]">
                           {member.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -715,6 +740,7 @@ export default function TeamNew() {
                             userForm.setValue('role', member.role)
                             userForm.setValue('teamId', member.teamId || 'none')
                             userForm.setValue('designation', member.designation || '')
+                            userForm.setValue('hourlyRate', member.hourlyRate?.toString() || '')
                             setIsEditMemberDialogOpen(true)
                           }}
                         >
@@ -795,7 +821,7 @@ export default function TeamNew() {
                         onClick={() => {
                           setSelectedTeam(team)
                           teamForm.setValue('name', team.name)
-                          teamForm.setValue('leadUserId', team.leadUserId)
+                          teamForm.setValue('leadUserId', team.leadUserId || undefined)
                           setIsEditTeamDialogOpen(true)
                         }}
                       >
@@ -840,7 +866,7 @@ export default function TeamNew() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-[var(--accent-primary-weak)] flex items-center justify-center">
                               <span className="text-sm font-medium">
                                 {member.name.charAt(0).toUpperCase()}
                               </span>
@@ -1058,6 +1084,8 @@ export default function TeamNew() {
                                   userForm.setValue('role', member.role)
                                   userForm.setValue('teamId', member.teamId || 'none')
                                   userForm.setValue('designation', member.designation || '')
+                                  userForm.setValue('hourlyRate', member.hourlyRate?.toString() || '')
+                                  userForm.setValue('hourlyRate', member.hourlyRate?.toString() || '')
                                   setIsEditMemberDialogOpen(true)
                                 }}
                               >
@@ -1331,6 +1359,21 @@ export default function TeamNew() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="hourlyRate">Hourly Rate ($/hour - Optional)</Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="e.g., 75.00"
+                  {...userForm.register('hourlyRate')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Billing rate for time entries when generating invoices
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="password">Password (Optional)</Label>
                 <Input
                   id="password"
@@ -1519,6 +1562,21 @@ export default function TeamNew() {
                   placeholder="e.g., Senior Developer"
                   {...userForm.register('designation')}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="editHourlyRate">Hourly Rate ($/hour - Optional)</Label>
+                <Input
+                  id="editHourlyRate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="e.g., 75.00"
+                  {...userForm.register('hourlyRate')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Billing rate for time entries when generating invoices
+                </p>
               </div>
             </div>
             <DialogFooter>

@@ -13,11 +13,13 @@ import ProjectDetail from '@/pages/ProjectDetail.tsx'
 import PhaseDetailPage from '@/pages/PhaseDetailPage.tsx'
 import TaskDetailPage from '@/pages/TaskDetailPage.tsx'
 import SubtaskDetailPage from '@/pages/SubtaskDetailPage.tsx'
-import Tasks from '@/pages/Tasks.tsx'
+import TasksNew from '@/pages/TasksNew.tsx'
 import Clients from '@/pages/Clients.tsx'
 import ClientDetail from '@/pages/ClientDetail.tsx'
 import TeamNew from '@/pages/TeamNew.tsx'
 import TimeTracking from '@/pages/TimeTracking.tsx'
+import TimesheetDetailPage from '@/pages/TimesheetDetailPage.tsx'
+import LeaveRequestPage from '@/pages/LeaveRequestPage.tsx'
 import Invoices from '@/pages/Invoices.tsx'
 import Settings from '@/pages/Settings.tsx'
 
@@ -114,7 +116,15 @@ export const router = createBrowserRouter([
         path: 'tasks',
         element: (
           <RouteGuard path="/app/tasks">
-            <Tasks />
+            <TasksNew />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: 'tasks/:taskId',
+        element: (
+          <RouteGuard path="/app/tasks">
+            <TaskDetailPage />
           </RouteGuard>
         ),
       },
@@ -163,6 +173,22 @@ export const router = createBrowserRouter([
         element: (
           <RouteGuard path="/app/time">
             <TimeTracking />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: 'time/timesheets/:id',
+        element: (
+          <RouteGuard path="/app/time">
+            <TimesheetDetailPage />
+          </RouteGuard>
+        ),
+      },
+      {
+        path: 'time/leave/request',
+        element: (
+          <RouteGuard path="/app/time">
+            <LeaveRequestPage />
           </RouteGuard>
         ),
       },

@@ -103,3 +103,12 @@ export const timeEntryService = {
     await apiClient.delete(`/time-entries/${id}`)
   },
 }
+
+// Export individual functions for easier imports
+export const getTimeEntries = timeEntryService.getTimeEntries
+export const getActiveTimer = timeEntryService.getActiveTimer
+export const startTimer = timeEntryService.startTimer
+export const stopTimer = timeEntryService.stopTimer
+export const createManualEntry = timeEntryService.createManualEntry
+export const updateEntry = timeEntryService.updateEntry
+export const deleteEntry = timeEntryService.deleteEntry

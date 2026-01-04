@@ -8,6 +8,7 @@ export interface Phase {
   sortOrder: number;
   status: 'TODO' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   teamId?: string;
+  teamName?: string;
   taskCount: number;
   createdAt: string;
   updatedAt: string;

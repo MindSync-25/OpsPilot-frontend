@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useOnboarding } from '@/contexts/OnboardingContext'
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip'
 import { taskService, type CreateTaskRequest, type TaskStatus } from '@/services/taskService'
 import { projectService } from '@/services/projectService'
 import Kanban, { type KanbanTask } from '@/components/kanban/Kanban'
@@ -28,26 +30,32 @@ import {
 } from '@/components/ui/select'
 
 // Map backend status to Kanban status
-const statusMap: Record<string, 'todo' | 'in_progress' | 'done'> = {
+const statusMap: Record<string, 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'> = {
   'TODO': 'todo',
   'IN_PROGRESS': 'in_progress',
+  'BLOCKED': 'blocked',
+  'REVIEW': 'review',
   'DONE': 'done',
 }
 
-const reverseStatusMap: Record<'todo' | 'in_progress' | 'done', TaskStatus> = {
+const reverseStatusMap: Record<'todo' | 'in_progress' | 'blocked' | 'review' | 'done', TaskStatus> = {
   'todo': 'TODO',
   'in_progress': 'IN_PROGRESS',
+  'blocked': 'BLOCKED',
+  'review': 'REVIEW',
   'done': 'DONE',
 }
 
-const priorityMap: Record<string, 'low' | 'medium' | 'high'> = {
+const priorityMap: Record<string, 'low' | 'medium' | 'high' | 'urgent'> = {
   'LOW': 'low',
   'MEDIUM': 'medium',
   'HIGH': 'high',
+  'URGENT': 'urgent',
 }
 
 export default function Tasks() {
   const queryClient = useQueryClient()
+  const { shouldShowOnboarding, completedSteps } = useOnboarding()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [formData, setFormData] = useState<CreateTaskRequest>({
     title: '',
@@ -130,7 +138,7 @@ export default function Tasks() {
     createMutation.mutate(formData)
   }
 
-  const handleTaskMove = (taskId: string, newStatus: 'todo' | 'in_progress' | 'done') => {
+  const handleTaskMove = (taskId: string, newStatus: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done') => {
     const backendStatus = reverseStatusMap[newStatus]
     updateStatusMutation.mutate({ id: taskId, status: backendStatus })
   }
@@ -147,7 +155,7 @@ export default function Tasks() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4">
         <PageHeader
           title="Tasks"
           subtitle="Manage your tasks and workflow"
@@ -166,7 +174,7 @@ export default function Tasks() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4">
         <PageHeader
           title="Tasks"
           subtitle="Manage your tasks and workflow"
@@ -186,15 +194,25 @@ export default function Tasks() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4">
       <PageHeader
         title="Tasks"
         subtitle="Manage your tasks and workflow"
         primaryAction={
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Task
-          </Button>
+          <div className="relative">
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              New Task
+            </Button>
+            {shouldShowOnboarding && !completedSteps.includes('task') && (
+              <OnboardingTooltip
+                stepId="task-create"
+                title="Create Your First Task"
+                description="Break down your projects into manageable tasks. Assign team members and track progress."
+                position="bottom"
+              />
+            )}
+          </div>
         }
       />
 
@@ -202,7 +220,7 @@ export default function Tasks() {
         {kanbanTasks.length === 0 ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4 max-w-md">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 rounded-full bg-[var(--accent-primary-weak)] flex items-center justify-center mx-auto">
                 <Plus className="w-8 h-8 text-primary" />
               </div>
               <div className="space-y-2">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   ArrowLeft, 
@@ -43,9 +43,13 @@ import { ProjectTimeView } from '@/components/projects/ProjectTimeView'
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   // const user = useAuthStore((state) => state.user)
   const { canEditProject, canDeleteProject, isAdmin, isUser } = useUserRole()
+
+  // Get navigation context from state
+  const navigationState = location.state as { from?: string; clientName?: string } | null
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -73,13 +77,12 @@ export default function ProjectDetail() {
     enabled: !!project?.clientId,
   })
 
-  // TODO: Re-enable when backend endpoint is fixed
-  // const { data: members = [] } = useQuery({
-  //   queryKey: ['projectMembers', id],
-  //   queryFn: () => projectService.getProjectMembers(id!),
-  //   enabled: !!id,
-  // })
-  const members: any[] = []
+  // Fetch project members
+  const { data: members = [] } = useQuery({
+    queryKey: ['projectMembers', id],
+    queryFn: () => projectService.getProjectMembers(id!),
+    enabled: !!id,
+  })
 
   // Fetch tasks for this project
   /*
@@ -310,9 +313,9 @@ export default function ProjectDetail() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'HIGH': return 'text-red-600 dark:text-red-400'
-      case 'MEDIUM': return 'text-yellow-600 dark:text-yellow-400'
-      case 'LOW': return 'text-green-600 dark:text-green-400'
+      case 'HIGH': return 'text-[var(--accent-danger)]'
+      case 'MEDIUM': return 'text-[var(--accent-warning)]'
+      case 'LOW': return 'text-[var(--accent-success)]'
       default: return 'text-muted-foreground'
     }
   }
@@ -370,11 +373,17 @@ export default function ProjectDetail() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/app/projects')}
+          onClick={() => {
+            if (navigationState?.from) {
+              navigate(navigationState.from)
+            } else {
+              navigate('/app/projects')
+            }
+          }}
           className="-ml-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Projects
+          {navigationState?.from ? `Back to ${navigationState.clientName || 'Client'}` : 'Back to Projects'}
         </Button>
       </div>
       
@@ -431,74 +440,126 @@ export default function ProjectDetail() {
 
         {/* Overview Tab - Hidden for ADMIN and USER */}
         {!isAdmin && !isUser && (
-          <TabsContent value="overview" className="space-y-6">{/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{project.taskCount || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {project.completedTaskCount || 0} completed
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Total Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">{project.taskCount || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {project.completedTaskCount || 0} completed
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{project.progressPercent || 0}%</div>
-                <Progress value={project.progressPercent || 0} className="mt-2 h-2" />
-              </CardContent>
-            </Card>
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">{project.progressPercent || 0}%</div>
+                  <Progress value={project.progressPercent || 0} className="mt-2 h-1" />
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Time Logged
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{project.totalHours || 0}h</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {project.billableHours || 0}h billable
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Time Logged
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">{project.totalHours || 0}h</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {project.billableHours || 0}h billable
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Team Members
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{members.length}</div>
-                <p className="text-xs text-muted-foreground mt-1">Active members</p>
-              </CardContent>
-            </Card>
-          </div>
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Team Members
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">{project.teamMemberCount || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {members.length} assigned
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Project Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                {project.startDate && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Start Date
-                    </p>
-                    <div className="flex items-center gap-2">
+            {/* Additional Analytics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Phases
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">{project.phaseCount || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {project.activePhaseCount || 0} active
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Non-billable Hours
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">
+                    {((project.totalHours || 0) - (project.billableHours || 0)).toFixed(1)}h
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {project.totalHours ? Math.round(((project.totalHours - (project.billableHours || 0)) / project.totalHours) * 100) : 0}% of total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">
+                    Efficiency
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-xl font-bold">
+                    {project.billableHours && project.totalHours 
+                      ? Math.round((project.billableHours / project.totalHours) * 100) 
+                      : 0}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Billable ratio</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Project Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {project.startDate && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Start Date
+                      </p>
+                      <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{new Date(project.startDate).toLocaleDateString()}</span>
                     </div>
@@ -585,6 +646,7 @@ export default function ProjectDetail() {
                   projectId={project.id} 
                   hideProjectColumn={true}
                   showCreateButton={!isUser}
+                  showGenerateFromTimeButton={!isUser}
                 />
               </CardContent>
             </Card>

@@ -7,6 +7,7 @@ export interface User {
   role: string
   teamId?: string | null
   designation?: string
+  hourlyRate?: number | null
   isActive?: boolean
   status?: string
   createdAt?: string
@@ -22,6 +23,7 @@ export interface CreateUserRequest {
   role: string
   teamId?: string
   designation?: string
+  hourlyRate?: number
   managerUserId?: string
   password?: string
 }
@@ -34,6 +36,11 @@ export const userService = {
 
   async getUsersForAssignment(): Promise<User[]> {
     const response = await apiClient.get<User[]>('/users/all-for-assignment')
+    return response.data
+  },
+
+  async getUsersForMentions(): Promise<User[]> {
+    const response = await apiClient.get<User[]>('/users/mentions')
     return response.data
   },
 

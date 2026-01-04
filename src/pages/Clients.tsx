@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Building2, Loader2, Mail, Phone, Eye, Edit, Trash2, Search, Users, UserCheck, UserX, UserPlus } from 'lucide-react'
+import { Plus, Building2, Loader2, Mail, Phone, Edit, Trash2, Search, Users, UserCheck, UserX, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
+import { useOnboarding } from '@/contexts/OnboardingContext'
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip'
 import { clientService, type CreateClientRequest, type UpdateClientRequest, type Client } from '@/services/clientService'
 import { useUserRole } from '@/hooks/useUserRole'
 import PageHeader from '@/components/common/PageHeader'
@@ -14,15 +16,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 // Summary card component
 function SummaryCard({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: number, color?: string }) {
   return (
-    <Card className="flex-1 min-w-[160px]">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <div className={`rounded-full p-2 ${color || 'bg-primary/10'} flex items-center justify-center`}>
+    <Card className="flex-1 min-w-[160px] rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 pt-4">
+        <CardTitle className="text-xs font-medium text-muted-foreground">{label}</CardTitle>
+        <div className={`rounded-full p-2 ${color || 'bg-[var(--accent-primary-weak)]'} flex items-center justify-center`}>
           {icon}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+      <CardContent className="px-4 pb-4">
+        <div className="text-xl font-bold">{value}</div>
       </CardContent>
     </Card>
   )
@@ -69,6 +71,7 @@ export default function Clients() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { canCreateClients } = useUserRole()
+  const { shouldShowOnboarding, completedSteps } = useOnboarding()
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -209,8 +212,8 @@ export default function Clients() {
     switch (status) {
       case 'ACTIVE':
         return (
-          <Badge className="bg-green-100 text-green-700 border-green-300 flex items-center gap-1">
-            <UserCheck className="w-3 h-3 mr-1 text-green-500" /> Active
+          <Badge className="bg-[var(--accent-success)]/10 text-[var(--accent-success)] border-[var(--border-subtle)] flex items-center gap-1">
+            <UserCheck className="w-3 h-3 mr-1" /> Active
           </Badge>
         )
       case 'INACTIVE':
@@ -221,8 +224,8 @@ export default function Clients() {
         )
       case 'PROSPECT':
         return (
-          <Badge className="bg-blue-100 text-blue-700 border-blue-300 flex items-center gap-1">
-            <UserPlus className="w-3 h-3 mr-1 text-blue-500" /> Prospect
+          <Badge className="bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)] flex items-center gap-1">
+            <UserPlus className="w-3 h-3 mr-1" /> Prospect
           </Badge>
         )
       default:
@@ -274,10 +277,20 @@ export default function Clients() {
         subtitle="Manage your client relationships and accounts"
         primaryAction={
           canCreateClients ? (
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="w-5 h-5 mr-2" />
-              Add Client
-            </Button>
+            <div className="relative">
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="w-5 h-5 mr-2" />
+                Add Client
+              </Button>
+              {shouldShowOnboarding && !completedSteps.includes('client') && (
+                <OnboardingTooltip
+                  stepId="client-create"
+                  title="Add Your First Client"
+                  description="Create a client to track projects, time, and invoices. Start building your client portfolio."
+                  position="bottom"
+                />
+              )}
+            </div>
           ) : undefined
         }
       />
@@ -285,9 +298,9 @@ export default function Clients() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
         <SummaryCard icon={<Users className="w-6 h-6 text-primary" />} label="Total Clients" value={totalClients} color="bg-primary/10" />
-        <SummaryCard icon={<UserCheck className="w-6 h-6 text-green-600" />} label="Active" value={activeClients} color="bg-green-100" />
+        <SummaryCard icon={<UserCheck className="w-6 h-6 text-[var(--accent-success)]" />} label="Active" value={activeClients} color="bg-[var(--accent-success)]/10" />
         <SummaryCard icon={<UserX className="w-6 h-6 text-gray-500" />} label="Inactive" value={inactiveClients} color="bg-gray-200" />
-        <SummaryCard icon={<UserPlus className="w-6 h-6 text-blue-500" />} label="Prospects" value={prospectClients} color="bg-blue-100" />
+        <SummaryCard icon={<UserPlus className="w-6 h-6 text-[var(--accent-primary)]" />} label="Prospects" value={prospectClients} color="bg-[var(--accent-primary-weak)]" />
       </div>
 
       {/* Filters */}
@@ -348,7 +361,11 @@ export default function Clients() {
               </TableHeader>
               <TableBody>
                 {filteredClients.map((client) => (
-                  <TableRow key={client.id}>
+                  <TableRow
+                    key={client.id}
+                    className="cursor-pointer hover:bg-primary/5 transition"
+                    onClick={() => navigate(`/app/clients/${client.id}`)}
+                  >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
@@ -397,32 +414,23 @@ export default function Clients() {
                     <TableCell>{getStatusBadge(client.status || 'ACTIVE')}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="hover:bg-primary/10 transition"
-                          title="View details"
-                          onClick={() => navigate(`/app/clients/${client.id}`)}
-                        >
-                          <Eye className="w-4 h-4 text-primary" />
-                        </Button>
                         {canCreateClients && (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="hover:bg-blue-100 transition"
+                              className="hover:bg-accent transition"
                               title="Edit client"
-                              onClick={() => openEditDialog(client)}
+                              onClick={e => { e.stopPropagation(); openEditDialog(client); }}
                             >
-                              <Edit className="w-4 h-4 text-blue-600" />
+                              <Edit className="w-4 h-4 text-[var(--accent-primary)]" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="hover:bg-red-100 transition"
                               title="Delete client"
-                              onClick={() => setDeleteClientId(client.id)}
+                              onClick={e => { e.stopPropagation(); setDeleteClientId(client.id); }}
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
@@ -473,7 +481,7 @@ export default function Clients() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="contact@example.com"
+                  placeholder="Enter email address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -482,8 +490,7 @@ export default function Clients() {
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />

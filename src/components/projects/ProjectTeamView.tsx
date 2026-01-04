@@ -86,15 +86,15 @@ export function ProjectTeamView({ projectId }: ProjectTeamViewProps) {
     switch (role) {
       case 'TOP_USER':
       case 'SUPER_USER':
-        return 'bg-purple-500'
+        return 'bg-[var(--accent-primary)]'
       case 'ADMIN':
-        return 'bg-blue-500'
+        return 'bg-[var(--accent-primary)]'
       case 'USER':
-        return 'bg-green-500'
+        return 'bg-[var(--accent-success)]'
       case 'CLIENT':
-        return 'bg-gray-500'
+        return 'bg-muted'
       default:
-        return 'bg-gray-500'
+        return 'bg-muted'
     }
   }
 
@@ -138,26 +138,26 @@ export function ProjectTeamView({ projectId }: ProjectTeamViewProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Total Members */}
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-card">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Users className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Members</p>
-                <p className="text-2xl font-bold">{members.length}</p>
+                <p className="text-xs text-muted-foreground">Total Members</p>
+                <p className="text-xl font-bold">{members.length}</p>
               </div>
             </div>
 
             {/* Project Owner */}
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-card">
-              <div className="p-3 bg-blue-500/10 rounded-lg">
-                <UserCircle className="h-6 w-6 text-blue-500" />
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+              <div className="p-2 bg-[var(--accent-primary-weak)] rounded-lg">
+                <UserCircle className="h-5 w-5 text-[var(--accent-primary)]" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Project Owner</p>
+                <p className="text-xs text-muted-foreground">Project Owner</p>
                 {projectOwner ? (
                   <div>
-                    <p className="text-lg font-semibold">{projectOwner.name}</p>
+                    <p className="text-base font-semibold">{projectOwner.name}</p>
                     <p className="text-xs text-muted-foreground">{projectOwner.email}</p>
                   </div>
                 ) : (

@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Calendar, User, Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { taskService } from '@/services/taskService'
 import { subtaskService, type Subtask } from '@/services/subtaskService'
 import { userService } from '@/services/userService'
+import { teamService } from '@/services/teamService'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CommentSection } from '@/components/common/CommentSection'
+import { AttachmentSection } from '@/components/common/AttachmentSection'
 import { SubtaskFormDialog } from '@/components/tasks/SubtaskFormDialog'
 import TaskFormDialog from '@/components/tasks/TaskFormDialog'
 import { format } from 'date-fns'
@@ -30,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 export default function TaskDetailPage() {
   const { projectId, taskId } = useParams<{ projectId: string; taskId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isCreateSubtaskOpen, setIsCreateSubtaskOpen] = useState(false)
@@ -37,6 +40,26 @@ export default function TaskDetailPage() {
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [descriptionText, setDescriptionText] = useState('')
   const queryClient = useQueryClient()
+
+  // Determine if we came from the tasks module or a project
+  const cameFromTasksModule = location.pathname.startsWith('/app/tasks/')
+  
+  // Helper function for back navigation
+  const handleBackNavigation = () => {
+    if (cameFromTasksModule) {
+      navigate('/app/tasks')
+    } else if (projectId) {
+      navigate(`/app/projects/${projectId}`)
+    } else if (task?.projectId) {
+      navigate(`/app/projects/${task.projectId}`)
+    } else {
+      navigate('/app/tasks')
+    }
+  }
+  
+  const getBackButtonText = () => {
+    return cameFromTasksModule ? 'Back to Tasks' : 'Back to Project'
+  }
 
   // Fetch task details
   const { data: task, isLoading: taskLoading } = useQuery({
@@ -58,13 +81,19 @@ export default function TaskDetailPage() {
     queryFn: () => userService.getUsersForAssignment(),
   })
 
+  // Fetch teams for team name lookup
+  const { data: teams = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: () => teamService.getTeams(),
+  })
+
   // Delete task mutation
   const deleteMutation = useMutation({
     mutationFn: () => taskService.deleteTask(taskId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       toast.success('Task deleted successfully')
-      navigate(`/app/projects/${projectId}`)
+      handleBackNavigation()
     },
     onError: () => {
       toast.error('Failed to delete task')
@@ -119,9 +148,9 @@ export default function TaskDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'DONE':
-        return 'bg-green-500/10 text-green-500 border-green-500/20'
+        return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)] border-[var(--border-subtle)]'
       case 'IN_PROGRESS':
-        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+        return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)]'
       case 'TODO':
         return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
       default:
@@ -134,11 +163,11 @@ export default function TaskDetailPage() {
       case 'URGENT':
         return 'bg-red-500/10 text-red-500 border-red-500/20'
       case 'HIGH':
-        return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+        return 'bg-[var(--accent-warning)]/10 text-[var(--accent-warning)] border-[var(--border-subtle)]'
       case 'MEDIUM':
         return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
       case 'LOW':
-        return 'bg-green-500/10 text-green-500 border-green-500/20'
+        return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)] border-[var(--border-subtle)]'
       default:
         return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
     }
@@ -160,11 +189,11 @@ export default function TaskDetailPage() {
 
   if (!task) {
     return (
-      <div className="p-8">
+      <div className="p-4">
         <div className="text-center">
           <p className="text-lg text-muted-foreground">Task not found</p>
-          <Button onClick={() => navigate(`/app/projects/${projectId}`)} className="mt-4">
-            Back to Project
+          <Button onClick={handleBackNavigation} className="mt-4">
+            {getBackButtonText()}
           </Button>
         </div>
       </div>
@@ -176,15 +205,15 @@ export default function TaskDetailPage() {
     : 0
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
+    <div className="container mx-auto p-4 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/app/projects/${projectId}`)}
+          onClick={handleBackNavigation}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Project
+          {getBackButtonText()}
         </Button>
         <div className="flex gap-2">
           <Button onClick={() => setIsEditDialogOpen(true)}>
@@ -204,96 +233,81 @@ export default function TaskDetailPage() {
       {/* Task Title and Status */}
       <div className="mb-6">
         <div className="flex items-start gap-3 mb-3">
-          <h1 className="text-3xl font-bold flex-1">{task.title}</h1>
+          <h1 className="text-2xl font-bold flex-1">{task.title}</h1>
           <Badge className={getStatusColor(task.status)}>
             {task.status}
           </Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Description</CardTitle>
-                {!isEditingDescription ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setDescriptionText(task.description || '')
-                      setIsEditingDescription(true)
-                    }}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
+          {/* Description - Only show if has content or is being edited */}
+          {(task.description || isEditingDescription) && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Description</CardTitle>
+                  {!isEditingDescription ? (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setIsEditingDescription(false)
-                        setDescriptionText('')
+                        setDescriptionText(task.description || '')
+                        setIsEditingDescription(true)
                       }}
                     >
-                      Cancel
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => updateDescriptionMutation.mutate(descriptionText)}
-                      disabled={updateDescriptionMutation.isPending}
-                    >
-                      {updateDescriptionMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : null}
-                      Save
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditingDescription(false)
+                          setDescriptionText('')
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => updateDescriptionMutation.mutate(descriptionText)}
+                        disabled={updateDescriptionMutation.isPending}
+                      >
+                        {updateDescriptionMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : null}
+                        Save
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isEditingDescription ? (
+                  <Textarea
+                    value={descriptionText}
+                    onChange={(e) => setDescriptionText(e.target.value)}
+                    placeholder="Enter task description..."
+                    className="min-h-[100px]"
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {task.description}
+                  </p>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isEditingDescription ? (
-                <Textarea
-                  value={descriptionText}
-                  onChange={(e) => setDescriptionText(e.target.value)}
-                  placeholder="Enter task description..."
-                  className="min-h-[120px]"
-                />
-              ) : task.description ? (
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {task.description}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  No description provided
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Attachments */}
+          {/* Attachments - Compact */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Attachments</CardTitle>
-                <Button size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Upload
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">No attachments yet</p>
-                <p className="text-xs mt-1">Upload documents and images to attach to this task</p>
-              </div>
-              {/* TODO: Implement file upload functionality with backend support */}
+            <CardContent className="pt-4 pb-4">
+              {taskId && <AttachmentSection entityType="TASK" entityId={taskId} />}
             </CardContent>
           </Card>
 
@@ -417,10 +431,10 @@ export default function TaskDetailPage() {
 
           {/* Comments */}
           <Card>
-            <CardHeader>
-              <CardTitle>Comments</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Comments</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <CommentSection entityType="TASK" entityId={taskId!} />
             </CardContent>
           </Card>
@@ -514,6 +528,19 @@ export default function TaskDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Team */}
+              {task.teamId && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Team</p>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium">
+                      {teams.find(t => t.id === task.teamId)?.name || 'Unknown Team'}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Due Date */}
               {task.dueDate && (

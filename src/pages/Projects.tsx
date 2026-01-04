@@ -19,11 +19,14 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import ProjectFormDialog from '@/components/projects/ProjectFormDialog'
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function Projects() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { canCreateProject, user } = useUserRole()
+  const { shouldShowOnboarding, completedSteps } = useOnboarding()
   
   console.log('Current user:', user)
   console.log('User role:', user?.role)
@@ -180,9 +183,9 @@ export default function Projects() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'HIGH': return 'text-red-600 dark:text-red-400'
-      case 'MEDIUM': return 'text-yellow-600 dark:text-yellow-400'
-      case 'LOW': return 'text-green-600 dark:text-green-400'
+      case 'HIGH': return 'text-[var(--accent-danger)]'
+      case 'MEDIUM': return 'text-[var(--accent-warning)]'
+      case 'LOW': return 'text-[var(--accent-success)]'
       default: return 'text-muted-foreground'
     }
   }
@@ -247,10 +250,20 @@ export default function Projects() {
             Get started by creating your first project to organize tasks and track progress
           </p>
           {canCreateProject() && (
-            <Button onClick={() => setIsCreateDialogOpen(true)} size="lg">
-              <Plus className="w-5 h-5 mr-2" />
-              Create Your First Project
-            </Button>
+            <div className="relative">
+              <Button onClick={() => setIsCreateDialogOpen(true)} size="lg">
+                <Plus className="w-5 h-5 mr-2" />
+                Create Your First Project
+              </Button>
+              {shouldShowOnboarding && !completedSteps.includes('project') && (
+                <OnboardingTooltip
+                  stepId="project-create"
+                  title="Create Your First Project"
+                  description="Start by creating a project to organize your work and track progress."
+                  position="bottom"
+                />
+              )}
+            </div>
           )}
         </div>
 
@@ -294,7 +307,7 @@ export default function Projects() {
         <Card className="cursor-pointer hover:bg-accent/50" onClick={() => updateFilter('status', ProjectStatus.ACTIVE)}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <Clock className="h-4 w-4 text-green-600" />
+              <Clock className="h-4 w-4 text-[var(--accent-success)]" />
               <span className="text-2xl font-bold">{statusCounts.active}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">Active</p>
@@ -304,7 +317,7 @@ export default function Projects() {
         <Card className="cursor-pointer hover:bg-accent/50" onClick={() => updateFilter('status', ProjectStatus.ON_HOLD)}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <Pause className="h-4 w-4 text-yellow-600" />
+              <Pause className="h-4 w-4 text-[var(--accent-warning)]" />
               <span className="text-2xl font-bold">{statusCounts.onHold}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">On Hold</p>
@@ -314,7 +327,7 @@ export default function Projects() {
         <Card className="cursor-pointer hover:bg-accent/50" onClick={() => updateFilter('status', ProjectStatus.COMPLETED)}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <CheckCircle2 className="h-4 w-4 text-blue-600" />
+              <CheckCircle2 className="h-4 w-4 text-[var(--accent-primary)]" />
               <span className="text-2xl font-bold">{statusCounts.completed}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">Completed</p>
@@ -324,7 +337,7 @@ export default function Projects() {
         <Card className="cursor-pointer hover:bg-accent/50" onClick={() => updateFilter('status', ProjectStatus.CANCELLED)}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <XCircle className="h-4 w-4 text-red-600" />
+              <XCircle className="h-4 w-4 text-[var(--accent-danger)]" />
               <span className="text-2xl font-bold">{statusCounts.cancelled}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">Cancelled</p>
@@ -442,23 +455,25 @@ export default function Projects() {
           {projects.map((project) => (
           <Card 
             key={project.id}
-            className="cursor-pointer hover:border-primary/50 transition-colors"
+            className="cursor-pointer rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-lg hover:border-[var(--accent-primary)] transition-all duration-200 hover:-translate-y-0.5"
             onClick={() => {
               console.log('Card clicked! Project ID:', project.id)
               navigate(`/app/projects/${project.id}`)
             }}
           >
-            <CardHeader>
+            <CardHeader className="pb-3 px-4 pt-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
+                  <CardTitle className="text-base hover:text-[var(--accent-primary)] transition-colors">
+                    {project.name}
+                  </CardTitle>
                   {project.description && (
                     <CardDescription className="mt-1 line-clamp-2">
                       {project.description}
                     </CardDescription>
                   )}
                 </div>
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                   <Badge variant={getStatusVariant(project.status)}>
                     {project.status}
                   </Badge>
@@ -469,8 +484,8 @@ export default function Projects() {
               </div>
             </CardHeader>
 
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="px-4 pb-4">
+              <div className="space-y-3">
                 {/* Client */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Briefcase className="h-4 w-4" />
@@ -478,19 +493,19 @@ export default function Projects() {
                 </div>
 
                 {/* Progress */}
-                {project.progressPercent !== undefined && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
+                {(project.progressPercent !== undefined && project.progressPercent !== null) && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Progress</span>
                       <span className="font-medium">{project.progressPercent}%</span>
                     </div>
-                    <Progress value={project.progressPercent} className="h-2" />
+                    <Progress value={project.progressPercent} className="h-1" />
                   </div>
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                  {project.taskCount !== undefined && (
+                <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                  {(project.taskCount !== undefined && project.taskCount !== null) && (
                     <div className="flex items-center gap-1">
                       <CheckCircle2 className="h-4 w-4" />
                       <span>
@@ -498,7 +513,7 @@ export default function Projects() {
                       </span>
                     </div>
                   )}
-                  {project.totalHours !== undefined && (
+                  {(project.totalHours !== undefined && project.totalHours !== null) && (
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
                       <span>{project.totalHours}h logged</span>

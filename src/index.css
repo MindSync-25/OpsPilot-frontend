@@ -3,59 +3,121 @@
 @tailwind utilities;
 
 @layer base {
+  /* ================================================== */
+  /* LIGHT THEME (Cream / Premium Day Mode) */
+  /* ================================================== */
+  :root[data-theme="light-cream"],
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Backgrounds */
+    --bg-page: #F7F5F2;
+    --bg-main: #F7F5F2;
+    --bg-sidebar: #F6F4F1;
+    --bg-card: #FFFFFF;
+    --bg-hover: #f4f3ef;
+    
+    /* Text */
+    --text-primary: #1F2937;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    
+    /* Borders */
+    --border-subtle: rgba(31,41,55,0.08);
+    
+    /* Primary Accent (muted blue-gray teal) */
+    --accent-primary: #5F7F87;
+    --accent-primary-soft: rgba(95,127,135,0.14);
+    --accent-primary-weak: rgba(95,127,135,0.08);
+    
+    /* Status colors (ONLY for badges) */
+    --accent-secondary: #c8b07a;
+    --accent-success: #4FAE8A;
+    --accent-warning: #C9A45B;
+    --accent-danger: #D47C7C;
+    
+    /* Tailwind compatibility - Light Cream */
+    --background: 46 12% 96%;
+    --foreground: 220 13% 18%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 220 13% 18%;
+    --primary: 168 22% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 39 35% 63%;
+    --secondary-foreground: 220 13% 18%;
+    --muted: 44 18% 94%;
+    --muted-foreground: 220 6% 46%;
+    --accent: 44 18% 94%;
+    --accent-foreground: 220 13% 18%;
+    --destructive: 0 48% 66%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 14% 88%;
+    --input: 40 14% 88%;
+    --ring: 168 22% 54%;
+    --radius: 0.875rem;
+    --chart-1: 168 22% 54%;
+    --chart-2: 39 35% 63%;
+    --chart-3: 167 35% 56%;
+    --chart-4: 40 55% 68%;
+    --chart-5: 0 48% 66%;
   }
 
+  /* ================================================== */
+  /* DARK THEME (Professional Night Mode) */
+  /* ================================================== */
+  :root[data-theme="dark-sage"],
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 222.2 47.4% 11.2%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 216 34% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 217.2 91.2% 59.8%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Backgrounds */
+    --bg-page: #1F2633;
+    --bg-main: #1F2633;
+    --bg-sidebar: #202836;
+    --bg-card: #252E3F;
+    --bg-hover: #2c3344;
+    
+    /* Text */
+    --text-primary: #E5E7EB;
+    --text-secondary: #CBD5E1;
+    --text-muted: #9CA3AF;
+    
+    /* Borders */
+    --border-subtle: rgba(255,255,255,0.06);
+    
+    /* Primary Accent (softened teal for dark) */
+    --accent-primary: #6B9C9C;
+    --accent-primary-soft: rgba(107,156,156,0.16);
+    --accent-primary-weak: rgba(107,156,156,0.10);
+    
+    /* Status colors (muted for dark) */
+    --accent-secondary: #d6b36a;
+    --accent-success: #5FB3A2;
+    --accent-warning: #D0B36F;
+    --accent-danger: #E28A8A;
+    
+    /* Tailwind compatibility - Dark Sage */
+    --background: 220 20% 15%;
+    --foreground: 220 13% 91%;
+    --card: 222 19% 18%;
+    --card-foreground: 220 13% 91%;
+    --popover: 222 19% 18%;
+    --popover-foreground: 220 13% 91%;
+    --primary: 162 26% 60%;
+    --primary-foreground: 220 20% 15%;
+    --secondary: 39 43% 63%;
+    --secondary-foreground: 220 13% 91%;
+    --muted: 221 20% 20%;
+    --muted-foreground: 222 10% 60%;
+    --accent: 221 20% 20%;
+    --accent-foreground: 220 13% 91%;
+    --destructive: 0 58% 69%;
+    --destructive-foreground: 220 13% 91%;
+    --border: 222 19% 22%;
+    --input: 222 19% 22%;
+    --ring: 162 26% 60%;
+    --chart-1: 162 26% 60%;
+    --chart-2: 39 43% 63%;
+    --chart-3: 152 39% 62%;
+    --chart-4: 42 60% 70%;
+    --chart-5: 0 58% 69%;
   }
 
   * {
@@ -65,5 +127,21 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* ================================================== */
+  /* CARD & COMPONENT POLISH */
+  /* ================================================== */
+  .card-polish {
+    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .card-polish:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   }
 }

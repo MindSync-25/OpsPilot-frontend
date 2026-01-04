@@ -149,10 +149,10 @@ export function SubtaskList({ taskId, userRole, isTaskAssignee = false }: Subtas
                   </button>
 
                   {subtask.status === 'IN_PROGRESS' && (
-                    <Circle className="h-3 w-3 text-blue-500 fill-blue-500" />
+                    <Circle className="h-3 w-3 text-[var(--accent-primary)] fill-[var(--accent-primary)]" />
                   )}
                   {subtask.status === 'DONE' && (
-                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    <CheckCircle2 className="h-3 w-3 text-[var(--accent-success)]" />
                   )}
 
                   {canManageSubtasks && (

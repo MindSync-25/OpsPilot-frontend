@@ -123,7 +123,7 @@ export default function ClientDetail() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge className="bg-green-500">Active</Badge>
+        return <Badge className="bg-[var(--accent-success)]">Active</Badge>
       case 'INACTIVE':
         return <Badge variant="secondary">Inactive</Badge>
       case 'PROSPECT':
@@ -138,11 +138,11 @@ export default function ClientDetail() {
       case 'PLANNING':
         return <Badge variant="outline">Planning</Badge>
       case 'ACTIVE':
-        return <Badge className="bg-blue-500">Active</Badge>
+        return <Badge className="bg-[var(--accent-primary)]">Active</Badge>
       case 'ON_HOLD':
         return <Badge variant="secondary">On Hold</Badge>
       case 'COMPLETED':
-        return <Badge className="bg-green-500">Completed</Badge>
+        return <Badge className="bg-[var(--accent-success)]">Completed</Badge>
       case 'CANCELLED':
         return <Badge variant="destructive">Cancelled</Badge>
       default:
@@ -155,9 +155,9 @@ export default function ClientDetail() {
       case 'DRAFT':
         return <Badge variant="outline">Draft</Badge>
       case 'SENT':
-        return <Badge className="bg-blue-500">Sent</Badge>
+        return <Badge className="bg-[var(--accent-primary)]">Sent</Badge>
       case 'PAID':
-        return <Badge className="bg-green-500">Paid</Badge>
+        return <Badge className="bg-[var(--accent-success)]">Paid</Badge>
       case 'OVERDUE':
         return <Badge variant="destructive">Overdue</Badge>
       case 'CANCELLED':
@@ -263,7 +263,7 @@ export default function ClientDetail() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-[var(--accent-primary-weak)] flex items-center justify-center">
                     <Building2 className="w-8 h-8 text-primary" />
                   </div>
                   <div>
@@ -273,8 +273,8 @@ export default function ClientDetail() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="grid gap-6">
-              <div className="grid md:grid-cols-2 gap-6">
+            <CardContent className="grid gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 {client.contactName && (
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
@@ -337,7 +337,7 @@ export default function ClientDetail() {
           </Card>
 
           {/* Metrics Cards */}
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -420,7 +420,13 @@ export default function ClientDetail() {
                   </TableHeader>
                   <TableBody>
                     {clientProjects.map((project: Project) => (
-                      <TableRow key={project.id}>
+                      <TableRow 
+                        key={project.id}
+                        className="cursor-pointer hover:bg-accent/50"
+                        onClick={() => navigate(`/app/projects/${project.id}`, {
+                          state: { from: `/app/clients/${id}`, clientName: client.name }
+                        })}
+                      >
                         <TableCell className="font-medium">{project.name}</TableCell>
                         <TableCell>{getProjectStatusBadge(project.status)}</TableCell>
                         <TableCell>{project.startDate ? formatDate(project.startDate) : '-'}</TableCell>
@@ -429,7 +435,12 @@ export default function ClientDetail() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/app/projects/${project.id}`)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/app/projects/${project.id}`, {
+                                state: { from: `/app/clients/${id}`, clientName: client.name }
+                              })
+                            }}
                           >
                             View
                           </Button>
@@ -482,7 +493,7 @@ export default function ClientDetail() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/app/invoices/${invoice.id}`)}
+                            onClick={() => navigate('/app/invoices')}
                           >
                             View
                           </Button>

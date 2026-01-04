@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { taskService } from '@/services/taskService'
 import { userService } from '@/services/userService'
 import { phaseService } from '@/services/phaseService'
+import { teamService } from '@/services/teamService'
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,7 @@ const taskFormSchema = z.object({
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
   phaseId: z.string().optional(),
+  teamId: z.string().optional(),
   assigneeUserId: z.string().optional(),
   dueDate: z.string().optional(),
   storyPoints: z.string().optional(),
@@ -76,6 +78,7 @@ export default function TaskFormDialog({
       status: task?.status || 'TODO',
       priority: task?.priority || 'MEDIUM',
       phaseId: task?.phaseId || selectedPhaseId || '',
+      teamId: task?.teamId || '',
       assigneeUserId: task?.assignedTo || '',
       dueDate: task?.dueDate ? task.dueDate.split('T')[0] : '',
     },
@@ -90,6 +93,7 @@ export default function TaskFormDialog({
         status: task.status || 'TODO',
         priority: task.priority || 'MEDIUM',
         phaseId: task.phaseId || '',
+        teamId: task.teamId || '',
         assigneeUserId: task.assignedTo || '',
         dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
         storyPoints: task.storyPoints || '',
@@ -101,6 +105,7 @@ export default function TaskFormDialog({
         status: 'TODO',
         priority: 'MEDIUM',
         phaseId: selectedPhaseId || '',
+        teamId: '',
         assigneeUserId: '',
         dueDate: '',
         storyPoints: '',
@@ -126,6 +131,13 @@ export default function TaskFormDialog({
     queryKey: ['phases', projectId],
     queryFn: () => phaseService.getPhases(projectId),
     enabled: !!projectId && open,
+  })
+
+  // Fetch teams for team selector
+  const { data: teams = [] } = useQuery({
+    queryKey: ['teams'],
+    queryFn: () => teamService.getTeams(),
+    enabled: open,
   })
 
   // Fetch project members for assignee dropdown
@@ -157,12 +169,17 @@ export default function TaskFormDialog({
   }, [open, selectedPhaseId, form])
 
   const handleSubmit = (data: TaskFormValues) => {
+    // Get team from selected phase if no explicit team selected
+    const selectedPhase = phases.find(p => p.id === data.phaseId)
+    const resolvedTeamId = data.teamId || selectedPhase?.teamId || undefined
+    
     // Clean up empty strings for optional fields - convert to undefined
     const cleanedData = {
       ...data,
       projectId, // Include projectId for updates
       description: data.description?.trim() || undefined,
       phaseId: data.phaseId || undefined,
+      teamId: resolvedTeamId,
       assignedTo: data.assigneeUserId || undefined,
       dueDate: data.dueDate?.trim() || undefined,
     }
@@ -229,7 +246,15 @@ export default function TaskFormDialog({
                   <FormLabel>Phase</FormLabel>
                   <Select
                     value={field.value || 'none'}
-                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                    onValueChange={(value) => {
+                      const newPhaseId = value === 'none' ? undefined : value
+                      field.onChange(newPhaseId)
+                      // Auto-assign team from phase
+                      const selectedPhase = phases.find(p => p.id === newPhaseId)
+                      if (selectedPhase?.teamId && !form.getValues('teamId')) {
+                        form.setValue('teamId', selectedPhase.teamId)
+                      }
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -251,6 +276,47 @@ export default function TaskFormDialog({
                 </FormItem>
               )}
             />
+
+            {/* Team - only show if phase not selected OR phase has no team */}
+            {(!form.watch('phaseId') || !phases.find(p => p.id === form.watch('phaseId'))?.teamId) && (
+              <FormField
+                control={form.control}
+                name="teamId"
+                render={({ field }: any) => (
+                  <FormItem>
+                    <FormLabel>Team</FormLabel>
+                    <Select
+                      value={field.value || 'none'}
+                      onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select team (optional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No Team</SelectItem>
+                        {teams.map(team => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Show team info when auto-assigned from phase */}
+            {form.watch('phaseId') && phases.find(p => p.id === form.watch('phaseId'))?.teamId && (
+              <div className="text-sm text-muted-foreground p-3 bg-muted rounded-md">
+                Team auto-assigned from phase: <span className="font-medium text-foreground">
+                  {teams.find(t => t.id === phases.find(p => p.id === form.watch('phaseId'))?.teamId)?.name || 'Unknown'}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               {/* Status */}

@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { useOnboarding } from '@/contexts/OnboardingContext';
+import OnboardingTooltip from '@/components/onboarding/OnboardingTooltip';
+import { useUserRole } from '@/hooks/useUserRole';
 import {
   Plus,
   Search,
@@ -12,6 +15,7 @@ import {
   CheckCheck,
   XCircle,
   Trash2,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,27 +58,30 @@ import { clientService } from '@/services/clientService';
 import { projectService } from '@/services/projectService';
 import { InvoiceForm } from '@/components/invoices/InvoiceForm';
 import { InvoiceDetailDrawer } from '@/components/invoices/InvoiceDetailDrawer';
+import { GenerateInvoiceFromTimeDialog } from '@/components/invoices/GenerateInvoiceFromTimeDialog';
 import type { Invoice, InvoiceFilters } from '@/types/invoice';
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'DRAFT':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      return 'bg-muted text-muted-foreground';
     case 'SENT':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)]';
     case 'PAID':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)]';
     case 'OVERDUE':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      return 'bg-[var(--accent-danger)]/10 text-[var(--accent-danger)]';
     case 'CANCELLED':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      return 'bg-muted text-muted-foreground';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted text-muted-foreground';
   }
 };
 
 export default function Invoices() {
   const queryClient = useQueryClient();
+  const { shouldShowOnboarding, completedSteps } = useOnboarding();
+  const { user } = useUserRole();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<InvoiceFilters>({
@@ -84,6 +91,11 @@ export default function Invoices() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
+  const [showGenerateFromTime, setShowGenerateFromTime] = useState(false);
+
+  // Check if user can generate invoices from time (TOP_USER, SUPER_USER, ADMIN)
+  const canGenerateFromTime =
+    user?.role === 'TOP_USER' || user?.role === 'SUPER_USER' || user?.role === 'ADMIN';
 
   // Fetch data
   const { data: invoices = [], isLoading: isLoadingInvoices } = useQuery({
@@ -196,54 +208,70 @@ export default function Invoices() {
             Manage and track all your invoices
           </p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Invoice
-        </Button>
+        <div className="relative flex gap-2">
+          {canGenerateFromTime && (
+            <Button variant="outline" onClick={() => setShowGenerateFromTime(true)}>
+              <Clock className="w-4 h-4 mr-2" />
+              Generate from Time
+            </Button>
+          )}
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Invoice
+          </Button>
+          {shouldShowOnboarding && !completedSteps.includes('invoice') && user?.role !== 'USER' && (
+            <OnboardingTooltip
+              stepId="invoice-create"
+              title="Create Your First Invoice"
+              description="Track billing and manage payments by creating invoices for your clients and projects."
+              position="bottom"
+            />
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">
+        <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+          <CardHeader className="pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Unpaid Amount
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <div className="flex items-center">
-              <DollarSign className="w-5 h-5 text-orange-500 mr-2" />
-              <span className="text-2xl font-bold">
+              <DollarSign className="w-4 h-4 text-[var(--accent-warning)] mr-2" />
+              <span className="text-xl font-bold">
                 ${summary.unpaidAmount.toFixed(2)}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">
+        <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+          <CardHeader className="pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Overdue Invoices
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <div className="flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-              <span className="text-2xl font-bold">{summary.overdueCount}</span>
+              <AlertCircle className="w-4 h-4 text-[var(--accent-danger)] mr-2" />
+              <span className="text-xl font-bold">{summary.overdueCount}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">
+        <Card className="rounded-xl border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+          <CardHeader className="pb-2 px-4 pt-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Paid Invoices
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <div className="flex items-center">
-              <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
-              <span className="text-2xl font-bold">{summary.paidCount}</span>
+              <CheckCircle2 className="w-4 h-4 text-[var(--accent-success)] mr-2" />
+              <span className="text-xl font-bold">{summary.paidCount}</span>
             </div>
           </CardContent>
         </Card>
@@ -469,7 +497,7 @@ export default function Invoices() {
                             }
                             title="Mark as Paid"
                           >
-                            <CheckCheck className="w-4 h-4 text-green-600" />
+                            <CheckCheck className="w-4 h-4 text-[var(--accent-success)]" />
                           </Button>
                         )}
                         {(invoice.status === 'DRAFT' ||
@@ -548,6 +576,12 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Generate Invoice from Time Dialog */}
+      <GenerateInvoiceFromTimeDialog
+        open={showGenerateFromTime}
+        onOpenChange={setShowGenerateFromTime}
+      />
     </div>
   );
 }

@@ -36,12 +36,14 @@ import { clientService } from '@/services/clientService';
 import { projectService } from '@/services/projectService';
 import { InvoiceForm } from './InvoiceForm';
 import { InvoiceDetailDrawer } from './InvoiceDetailDrawer';
+import { GenerateInvoiceFromTimeDialog } from './GenerateInvoiceFromTimeDialog';
 import type { Invoice } from '@/types/invoice';
 
 interface InvoiceTableProps {
   projectId?: string;
   hideProjectColumn?: boolean;
   showCreateButton?: boolean;
+  showGenerateFromTimeButton?: boolean;
 }
 
 const getStatusColor = (status: string) => {
@@ -49,9 +51,9 @@ const getStatusColor = (status: string) => {
     case 'DRAFT':
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     case 'SENT':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-[var(--accent-primary-weak)] text-[var(--accent-primary)]';
     case 'PAID':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      return 'bg-[var(--accent-success)]/10 text-[var(--accent-success)]';
     case 'OVERDUE':
       return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
     case 'CANCELLED':
@@ -65,6 +67,7 @@ export function InvoiceTable({
   projectId,
   hideProjectColumn = false,
   showCreateButton = true,
+  showGenerateFromTimeButton = false,
 }: InvoiceTableProps) {
   const queryClient = useQueryClient();
 
@@ -72,6 +75,7 @@ export function InvoiceTable({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showDetailDrawer, setShowDetailDrawer] = useState(false);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
+  const [showGenerateFromTime, setShowGenerateFromTime] = useState(false);
 
   // Fetch data
   const { data: invoices = [], isLoading: isLoadingInvoices } = useQuery({
@@ -196,12 +200,20 @@ export function InvoiceTable({
   return (
     <>
       <div className="space-y-4">
-        {showCreateButton && (
-          <div className="flex justify-end">
-            <Button onClick={() => setShowCreateForm(true)} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Invoice
-            </Button>
+        {(showCreateButton || showGenerateFromTimeButton) && (
+          <div className="flex justify-end gap-2">
+            {showGenerateFromTimeButton && (
+              <Button onClick={() => setShowGenerateFromTime(true)} size="sm" variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Generate from Time
+              </Button>
+            )}
+            {showCreateButton && (
+              <Button onClick={() => setShowCreateForm(true)} size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Invoice
+              </Button>
+            )}
           </div>
         )}
 
@@ -284,7 +296,7 @@ export function InvoiceTable({
                         }
                         title="Mark as Paid"
                       >
-                        <CheckCheck className="w-4 h-4 text-green-600" />
+                        <CheckCheck className="w-4 h-4 text-[var(--accent-success)]" />
                       </Button>
                     )}
                     {(invoice.status === 'DRAFT' ||
@@ -361,6 +373,12 @@ export function InvoiceTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Generate Invoice from Time Dialog */}
+      <GenerateInvoiceFromTimeDialog
+        open={showGenerateFromTime}
+        onOpenChange={setShowGenerateFromTime}
+      />
     </>
   );
 }

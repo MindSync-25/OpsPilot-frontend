@@ -41,8 +41,8 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
 
   // Fetch users for mentions
   const { data: users = [] } = useQuery({
-    queryKey: ['users-for-assignment'],
-    queryFn: () => userService.getUsersForAssignment(),
+    queryKey: ['users-for-mentions'],
+    queryFn: () => userService.getUsersForMentions(),
   })
 
   // Create comment mutation
@@ -124,7 +124,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
     return parts.map((part, index) => {
       if (part.startsWith('@')) {
         return (
-          <span key={index} className="text-blue-600 dark:text-blue-400 font-medium">
+          <span key={index} className="text-[var(--accent-primary)] font-medium">
             {part}
           </span>
         )
