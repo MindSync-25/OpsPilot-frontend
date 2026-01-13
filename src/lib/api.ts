@@ -26,7 +26,7 @@ apiClient.interceptors.request.use(
   }
 )
 
-// Response interceptor - Handle 401 errors
+// Response interceptor - Handle 401 and 402 errors
 apiClient.interceptors.response.use(
   (response) => {
     return response
@@ -38,6 +38,17 @@ apiClient.interceptors.response.use(
       window.location.href = '/login'
     }
     
+    if (error.response?.status === 402) {
+      // Payment required - trigger global event for payment modal
+      window.dispatchEvent(new CustomEvent('payment-required', {
+        detail: {
+          message: (error.response.data as any)?.message || 'Subscription upgrade required'
+        }
+      }))
+    }
+    
     return Promise.reject(error)
   }
 )
+
+export default apiClient

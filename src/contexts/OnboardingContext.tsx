@@ -18,7 +18,7 @@ interface OnboardingContextType extends OnboardingState {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined)
 
-const STORAGE_KEY = 'opsflow_onboarding'
+const STORAGE_KEY = 'opspilot_onboarding'
 
 const INITIAL_STATE: OnboardingState = {
   onboardingStarted: false,

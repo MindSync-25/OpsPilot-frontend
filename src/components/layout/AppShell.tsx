@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/app/store'
 import { useThemeStore } from '@/app/themeStore'
 import { getNavigationItems } from '@/lib/roles'
+import { useFeatureAccess } from '@/hooks/useFeatureAccess'
 import {
   LayoutDashboard,
   FolderKanban,
@@ -23,6 +24,10 @@ import {
   ChevronLeft,
   ChevronRight,
   BarChart3,
+  CreditCard,
+  Lock,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 import { cn } from '@/lib/utils'
@@ -44,12 +49,20 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { toast } from 'sonner'
+import PaymentRequiredModal from '@/components/common/PaymentRequiredModal'
 
 interface AppShellProps {
   children: React.ReactNode
 }
 
-const iconMap: Record<string, any> = {
+interface NavItem {
+  name: string
+  href: string
+  icon: typeof LayoutDashboard
+  locked?: boolean
+}
+
+const iconMap: Record<string, typeof LayoutDashboard> = {
   Dashboard: LayoutDashboard,
   Teams: UsersRound,
   Team: Users,
@@ -58,7 +71,11 @@ const iconMap: Record<string, any> = {
   'Time Tracking': Clock,
   Invoices: FileText,
   Reports: BarChart3,
+  Analytics: TrendingUp,
   Clients: Building2,
+  CRM: Building2,
+  Billing: CreditCard,
+  'White Label': Sparkles,
   Settings: Settings,
 }
 
@@ -67,6 +84,7 @@ export default function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const { theme } = useThemeStore()
+  const { hasTimeTracking, hasInvoicing, hasReports, hasAdvancedAnalytics, hasWhiteLabel, isLoading: featuresLoading } = useFeatureAccess()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem('sidebarCollapsed')
@@ -79,11 +97,26 @@ export default function AppShell({ children }: AppShellProps) {
 
   const navigation = useMemo(() => {
     if (!user?.role) return []
-    return getNavigationItems(user.role).map(item => ({
+    const items = getNavigationItems(user.role).map(item => ({
       ...item,
       icon: iconMap[item.name] || LayoutDashboard
     }))
-  }, [user?.role])
+
+    // Filter based on subscription features
+    if (featuresLoading) return items
+
+    return items.map(item => {
+      // Check if feature is locked based on plan
+      let locked = false
+      if (item.name === 'Time Tracking' && !hasTimeTracking) locked = true
+      if (item.name === 'Invoices' && !hasInvoicing) locked = true
+      if (item.name === 'Reports' && !hasReports) locked = true
+      if (item.name === 'Analytics' && !hasAdvancedAnalytics) locked = true
+      if (item.name === 'White Label' && !hasWhiteLabel) locked = true
+
+      return { ...item, locked }
+    })
+  }, [user, hasTimeTracking, hasInvoicing, hasReports, hasAdvancedAnalytics, hasWhiteLabel, featuresLoading])
 
   const handleLogout = () => {
     logout()
@@ -103,11 +136,11 @@ export default function AppShell({ children }: AppShellProps) {
           <div className="flex items-center h-20 px-6 border-b border-border/60">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-primary-foreground font-bold text-lg">IT</span>
+                <span className="text-primary-foreground font-bold text-lg">OP</span>
               </div>
               {!sidebarCollapsed && (
                 <span className="text-xl font-extrabold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent whitespace-nowrap">
-                  OpsFlow
+                  OpsPilot
                 </span>
               )}
             </div>
@@ -138,27 +171,51 @@ export default function AppShell({ children }: AppShellProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
+            {navigation.map((item: NavItem) => {
               const isActive = location.pathname === item.href
               const Icon = item.icon
+              const isLocked = item.locked || false
+              
+              const handleClick = (e: React.MouseEvent) => {
+                if (isLocked) {
+                  e.preventDefault()
+                  toast.error(`Upgrade your plan to access ${item.name}`, {
+                    action: {
+                      label: 'View Plans',
+                      onClick: () => navigate('/app/billing')
+                    }
+                  })
+                }
+              }
+              
               return (
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={handleClick}
                   title={sidebarCollapsed ? item.name : undefined}
                   className={cn(
                     'group relative flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200',
-                    isActive
-                      ? 'bg-accent/50 text-foreground'
+                    isLocked && 'opacity-50 cursor-not-allowed',
+                    isActive && !isLocked
+                      ? 'text-foreground'
                       : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground',
                     sidebarCollapsed ? 'justify-center' : ''
                   )}
                 >
-                  {isActive && (
+                  {isActive && !isLocked && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
                   )}
                   <Icon className={cn("w-5 h-5", !sidebarCollapsed && "ml-1")} />
-                  {!sidebarCollapsed && <span className="ml-3">{item.name}</span>}
+                  {!sidebarCollapsed && (
+                    <span className="ml-3 flex items-center gap-2">
+                      {item.name}
+                      {isLocked && <Lock className="w-3 h-3" />}
+                    </span>
+                  )}
+                  {sidebarCollapsed && isLocked && (
+                    <Lock className="w-3 h-3 absolute -top-1 -right-1" />
+                  )}
                 </Link>
               )
             })}
@@ -220,32 +277,57 @@ export default function AppShell({ children }: AppShellProps) {
           <SheetHeader className="p-6 border-b border-border/60">
             <SheetTitle className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-                <span className="text-primary-foreground font-bold text-lg">IT</span>
+                <span className="text-primary-foreground font-bold text-lg">OP</span>
               </div>
-              <span className="text-xl font-extrabold">OpsFlow</span>
+              <span className="text-xl font-extrabold">OpsPilot</span>
             </SheetTitle>
           </SheetHeader>
           <nav className="px-3 py-6 space-y-1">
-            {navigation.map((item) => {
+            {navigation.map((item: NavItem) => {
               const isActive = location.pathname === item.href
               const Icon = item.icon
+              const isLocked = item.locked || false
+              
+              const handleClick = (e: React.MouseEvent) => {
+                if (isLocked) {
+                  e.preventDefault()
+                  setSidebarOpen(false)
+                  toast.error(`Upgrade your plan to access ${item.name}`, {
+                    action: {
+                      label: 'View Plans',
+                      onClick: () => navigate('/app/billing')
+                    }
+                  })
+                }
+              }
+              
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={(e) => {
+                    if (isLocked) {
+                      handleClick(e)
+                    } else {
+                      setSidebarOpen(false)
+                    }
+                  }}
                   className={cn(
                     'group relative flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200',
-                    isActive
+                    isLocked && 'opacity-50 cursor-not-allowed',
+                    isActive && !isLocked
                       ? 'bg-accent/50 text-foreground'
                       : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground'
                   )}
                 >
-                  {isActive && (
+                  {isActive && !isLocked && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
                   )}
                   <Icon className="w-5 h-5 ml-1" />
-                  <span className="ml-3">{item.name}</span>
+                  <span className="ml-3 flex items-center gap-2">
+                    {item.name}
+                    {isLocked && <Lock className="w-3 h-3" />}
+                  </span>
                 </Link>
               )
             })}
@@ -343,6 +425,9 @@ export default function AppShell({ children }: AppShellProps) {
           {children}
         </main>
       </div>
+
+      {/* Payment Required Modal */}
+      <PaymentRequiredModal />
     </div>
   )
 }

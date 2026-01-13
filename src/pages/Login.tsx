@@ -55,11 +55,11 @@ export default function Login() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-            <span className="text-primary-foreground font-bold text-2xl">IT</span>
+            <span className="text-primary-foreground font-bold text-2xl">OP</span>
           </div>
         </div>
         <h2 className="text-center text-3xl font-bold text-foreground">
-          Welcome to OpsFlow
+          Welcome to OpsPilot
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Sign in to your account

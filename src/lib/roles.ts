@@ -61,9 +61,9 @@ export function getCreatableRoles(creatorRole: string): string[] {
 
 export function canAccessRoute(userRole: string, route: string): boolean {
   const rolePermissions: Record<string, string[]> = {
-    [UserRole.TOP_USER]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/settings'],
-    [UserRole.SUPER_USER]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/settings'],
-    [UserRole.ADMIN]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/settings'],
+    [UserRole.TOP_USER]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/billing', '/app/settings'],
+    [UserRole.SUPER_USER]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/billing', '/app/settings'],
+    [UserRole.ADMIN]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/invoices', '/app/reports', '/app/clients', '/app/billing', '/app/settings'],
     [UserRole.USER]: ['/app/dashboard', '/app/team', '/app/projects', '/app/tasks', '/app/time', '/app/reports', '/app/clients', '/app/settings'],
     [UserRole.CLIENT]: ['/app/dashboard', '/app/projects', '/app/settings'],
   }
@@ -81,8 +81,11 @@ export function getNavigationItems(userRole: string) {
     { name: 'Time Tracking', href: '/app/time', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER] },
     { name: 'Invoices', href: '/app/invoices', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN] },
     { name: 'Reports', href: '/app/reports', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER] },
+    { name: 'Analytics', href: '/app/analytics', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN] },
     { name: 'Clients', href: '/app/clients', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER] },
     { name: 'CRM', href: '/app/crm', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER] },
+    { name: 'Billing', href: '/app/billing', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN] },
+    { name: 'White Label', href: '/app/white-label', roles: [UserRole.TOP_USER, UserRole.SUPER_USER] },
     { name: 'Settings', href: '/app/settings', roles: [UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN, UserRole.USER, UserRole.CLIENT] },
   ]
   

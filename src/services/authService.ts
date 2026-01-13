@@ -5,6 +5,7 @@ export interface SignupRequest {
   email: string
   password: string
   companyName: string
+  planCode?: string
 }
 
 export interface AuthResponse {

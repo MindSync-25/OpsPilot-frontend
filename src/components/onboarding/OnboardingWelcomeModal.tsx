@@ -43,7 +43,7 @@ export default function OnboardingWelcomeModal() {
             </div>
           </div>
           <DialogTitle className="text-center text-2xl">
-            Welcome to OpsFlow 👋
+            Welcome to OpsPilot 👋
           </DialogTitle>
           <DialogDescription className="text-center text-base mt-2">
             Run projects, track time, and bill clients — all in one place.

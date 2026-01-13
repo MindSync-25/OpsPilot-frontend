@@ -22,7 +22,14 @@ import TimesheetDetailPage from '@/pages/TimesheetDetailPage.tsx'
 import LeaveRequestPage from '@/pages/LeaveRequestPage.tsx'
 import Invoices from '@/pages/Invoices.tsx'
 import Reports from '@/pages/Reports.tsx'
+import AdvancedAnalytics from '@/pages/AdvancedAnalytics.tsx'
+import WhiteLabel from '@/pages/WhiteLabel.tsx'
 import Settings from '@/pages/Settings.tsx'
+import Billing from '@/pages/Billing.tsx'
+import Pricing from '@/pages/Pricing.tsx'
+import Home from '@/pages/Home.tsx'
+import Features from '@/pages/Features.tsx'
+import About from '@/pages/About.tsx'
 
 // Protected route wrapper
 const ProtectedRoute = () => {
@@ -35,26 +42,32 @@ const ProtectedRoute = () => {
   return <AppShell><Outlet /></AppShell>
 }
 
-// Public route wrapper (redirect to dashboard if already logged in)
+// Public route wrapper (redirect to dashboard if already logged in for auth pages only)
 const PublicRoute = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated())
-  
-  if (isAuthenticated) {
-    return <Navigate to="/app/dashboard" replace />
-  }
-  
   return <Outlet />
 }
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/app/dashboard" replace />,
-  },
-  {
-    path: '/',
     element: <PublicRoute />,
     children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: 'features',
+        element: <Features />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'pricing',
+        element: <Pricing />,
+      },
       {
         path: 'login',
         element: <Login />,
@@ -210,8 +223,32 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'analytics',
+        element: (
+          <RoleGuard allowedRoles={[UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN]}>
+            <AdvancedAnalytics />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: 'white-label',
+        element: (
+          <RoleGuard allowedRoles={[UserRole.TOP_USER, UserRole.SUPER_USER]}>
+            <WhiteLabel />
+          </RoleGuard>
+        ),
+      },
+      {
         path: 'settings',
         element: <Settings />,
+      },
+      {
+        path: 'billing',
+        element: (
+          <RoleGuard allowedRoles={[UserRole.TOP_USER, UserRole.SUPER_USER, UserRole.ADMIN]}>
+            <Billing />
+          </RoleGuard>
+        ),
       },
     ],
   },

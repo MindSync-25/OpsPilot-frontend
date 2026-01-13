@@ -6,6 +6,7 @@ import { Toaster } from 'sonner'
 import { queryClient } from './app/queryClient'
 import { router } from './app/router'
 import { useThemeStore } from './app/themeStore'
+import { useWhiteLabelStore } from './app/whiteLabelStore'
 import { OnboardingProvider } from './contexts/OnboardingContext'
 import './index.css'
 
@@ -19,7 +20,14 @@ const initializeTheme = () => {
   }
 }
 
+// Initialize white label branding on app startup
+const initializeWhiteLabel = () => {
+  const applyBranding = useWhiteLabelStore.getState().applyBranding
+  applyBranding()
+}
+
 initializeTheme()
+initializeWhiteLabel()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

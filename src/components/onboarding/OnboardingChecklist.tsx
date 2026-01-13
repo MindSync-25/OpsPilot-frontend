@@ -140,7 +140,7 @@ export default function OnboardingChecklist() {
             <CardDescription className="text-xs mt-1">
               {onboardingCompleted 
                 ? 'You\'ve completed all onboarding steps!' 
-                : 'Complete these steps to get the most out of OpsFlow'}
+                : 'Complete these steps to get the most out of OpsPilot'}
             </CardDescription>
           </div>
           <Button

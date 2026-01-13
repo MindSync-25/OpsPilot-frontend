@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store'
 import { authService } from '@/services/authService'
+import { Check } from 'lucide-react'
 
 export default function Signup() {
   const [name, setName] = useState('')
@@ -10,6 +11,7 @@ export default function Signup() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [planCode, setPlanCode] = useState('STARTER')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -42,18 +44,20 @@ export default function Signup() {
         email,
         password,
         companyName,
+        planCode,
       })
       
       // Auto-login after successful signup
       login(response.accessToken, response.user)
       
       toast.success('Account created successfully!', {
-        description: 'Welcome to OpsFlow',
+        description: 'Welcome to OpsPilot',
       })
       
       navigate('/app/dashboard')
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to create account. Please try again.'
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } }
+      const errorMessage = error.response?.data?.message || 'Failed to create account. Please try again.'
       setError(errorMessage)
       toast.error('Signup failed', {
         description: errorMessage,
@@ -68,11 +72,11 @@ export default function Signup() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-            <span className="text-primary-foreground font-bold text-2xl">IT</span>
+            <span className="text-primary-foreground font-bold text-2xl">OP</span>
           </div>
         </div>
         <h2 className="text-center text-3xl font-bold text-foreground">
-          Join OpsFlow
+          Join OpsPilot
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
           Create your account
@@ -195,6 +199,115 @@ export default function Signup() {
                   className="appearance-none block w-full px-3 py-2 border border-input bg-background text-foreground rounded-md shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
                   placeholder="Acme Inc"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-3">
+                Choose your plan (14 days free trial)
+              </label>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPlanCode('STARTER')}
+                  className={`relative flex items-start p-4 border-2 rounded-lg transition-all ${
+                    planCode === 'STARTER'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground">Starter Plan</span>
+                      <span className="text-sm text-muted-foreground">₹999/mo</span>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>5 users, 10 projects</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>Kanban + Reports</span>
+                      </div>
+                    </div>
+                  </div>
+                  {planCode === 'STARTER' && (
+                    <div className="ml-3 flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPlanCode('GROWTH')}
+                  className={`relative flex items-start p-4 border-2 rounded-lg transition-all ${
+                    planCode === 'GROWTH'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground">Growth Plan</span>
+                      <span className="text-sm text-muted-foreground">₹2,999/mo</span>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>15 users, Unlimited projects</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>Time Tracking + Invoices + Advanced Analytics</span>
+                      </div>
+                    </div>
+                  </div>
+                  {planCode === 'GROWTH' && (
+                    <div className="ml-3 flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPlanCode('AGENCY')}
+                  className={`relative flex items-start p-4 border-2 rounded-lg transition-all ${
+                    planCode === 'AGENCY'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-input hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-foreground">Agency Plan</span>
+                      <span className="text-sm text-muted-foreground">₹7,999/mo</span>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>50 users, Unlimited projects</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="w-3 h-3 text-primary" />
+                        <span>All Growth + White Label branding</span>
+                      </div>
+                    </div>
+                  </div>
+                  {planCode === 'AGENCY' && (
+                    <div className="ml-3 flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                  )}
+                </button>
               </div>
             </div>
 
