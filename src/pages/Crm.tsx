@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import PageHeader from '@/components/common/PageHeader'
 import ContentSection from '@/components/common/ContentSection'
-import { Loader2, Plus, Search, Target, TrendingUp, UserCheck, Users } from 'lucide-react'
+import { Loader2, Plus, Search, Target, TrendingUp, UserCheck, Users, LayoutGrid, LayoutList, Phone, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { CrmPipelineKanban } from '@/components/crm/CrmPipelineKanban'
+import { toast } from 'sonner'
 
 // Summary card component
 function SummaryCard({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: number, color?: string }) {
@@ -54,6 +56,7 @@ function Crm() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [leadStageFilter, setLeadStageFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   
   const [formData, setFormData] = useState<CreateClientRequest>({
     name: '',
@@ -75,8 +78,25 @@ function Crm() {
       setIsDialogOpen(false);
       setFormData({ name: '', contactName: '', email: '', phone: '', address: '', status: 'ACTIVE' });
       queryClient.invalidateQueries({ queryKey: ['crmClients'] });
+      toast.success('Lead created successfully');
     },
   });
+
+  const updateStageMutation = useMutation({
+    mutationFn: ({ id, stage }: { id: string; stage: string }) =>
+      crmService.updateCrmClient(id, { leadStage: stage }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['crmClients'] });
+      toast.success('Lead stage updated');
+    },
+    onError: () => {
+      toast.error('Failed to update lead stage');
+    },
+  });
+
+  const handleStageChange = (clientId: string, newStage: string) => {
+    updateStageMutation.mutate({ id: clientId, stage: newStage });
+  };
 
   // Filter CRM clients
   const filteredClients = useMemo(() => {
@@ -138,19 +158,41 @@ function Crm() {
         title="CRM"
         subtitle="Manage all leads and client relationships"
         primaryAction={
-          <div className="relative">
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="w-5 h-5 mr-2" />
-              Create Lead
-            </Button>
-            {shouldShowOnboarding && !completedSteps.includes('crm') && (
-              <OnboardingTooltip
-                stepId="crm-create"
-                title="Track Your First Opportunity"
-                description="Add leads and opportunities to manage your sales pipeline. Track deals from prospect to close."
-                position="bottom"
-              />
-            )}
+          <div className="flex items-center gap-2">
+            <div className="flex border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className="h-8"
+              >
+                <LayoutList className="h-4 w-4 mr-1" />
+                Table
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="h-8"
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                Pipeline
+              </Button>
+            </div>
+            <div className="relative">
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="w-5 h-5 mr-2" />
+                Create Lead
+              </Button>
+              {shouldShowOnboarding && !completedSteps.includes('crm') && (
+                <OnboardingTooltip
+                  stepId="crm-create"
+                  title="Track Your First Opportunity"
+                  description="Add leads and opportunities to manage your sales pipeline. Track deals from prospect to close."
+                  position="bottom"
+                />
+              )}
+            </div>
           </div>
         }
       />
@@ -175,37 +217,47 @@ function Crm() {
             className="pl-9"
           />
         </div>
-        <Select value={leadStageFilter} onValueChange={setLeadStageFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Filter by lead stage" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Stages</SelectItem>
-            <SelectItem value="PROSPECT">Prospect</SelectItem>
-            <SelectItem value="CONTACTED">Contacted</SelectItem>
-            <SelectItem value="PROPOSAL_SENT">Proposal Sent</SelectItem>
-            <SelectItem value="WON">Won</SelectItem>
-            <SelectItem value="LOST">Lost</SelectItem>
-          </SelectContent>
-        </Select>
+        {viewMode === 'table' && (
+          <Select value={leadStageFilter} onValueChange={setLeadStageFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Filter by lead stage" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stages</SelectItem>
+              <SelectItem value="PROSPECT">Prospect</SelectItem>
+              <SelectItem value="CONTACTED">Contacted</SelectItem>
+              <SelectItem value="PROPOSAL_SENT">Proposal Sent</SelectItem>
+              <SelectItem value="WON">Won</SelectItem>
+              <SelectItem value="LOST">Lost</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
-      {/* Data Table */}
-      <Card className="mt-6">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client Name</TableHead>
-                <TableHead>Contact Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Address</TableHead>
+      {/* Kanban Pipeline View */}
+      {viewMode === 'kanban' ? (
+        <div className="mt-6">
+          <CrmPipelineKanban
+            clients={searchTerm ? filteredClients : crmClients}
+            onStageChange={handleStageChange}
+          />
+        </div>
+      ) : (
+        <Card className="mt-6">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client Name</TableHead>
+                  <TableHead>Contact Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Address</TableHead>
                 <TableHead>Lead Stage</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Next Follow-up</TableHead>
                 <TableHead>Owner</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -231,7 +283,32 @@ function Crm() {
                     <TableCell className="max-w-[200px] truncate" title={client.notes || ''}>{client.notes || '-'}</TableCell>
                     <TableCell>{client.nextFollowUp ? new Date(client.nextFollowUp).toLocaleDateString() : '-'}</TableCell>
                     <TableCell>{client.ownerName || '-'}</TableCell>
-                    <TableCell>{client.createdAt ? new Date(client.createdAt).toLocaleDateString() : '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {client.phone && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => window.location.href = `tel:${client.phone}`}
+                            title={`Call ${client.phone}`}
+                          >
+                            <Phone className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {client.email && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => window.location.href = `mailto:${client.email}`}
+                            title={`Email ${client.email}`}
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -239,6 +316,7 @@ function Crm() {
           </Table>
         </CardContent>
       </Card>
+      )}
 
       {/* Create Lead Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

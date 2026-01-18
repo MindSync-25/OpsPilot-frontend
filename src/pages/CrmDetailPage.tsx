@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { crmService } from '@/services/crmService';
 import type { CrmClient } from '@/services/crmService';
@@ -9,7 +9,7 @@ import ContentSection from '@/components/common/ContentSection';
 import PageHeader from '@/components/common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Building2, User, Mail, Phone, MapPin, FileText, Calendar, TrendingUp, Shield } from 'lucide-react';
+import { Loader2, Building2, User, Mail, Phone, MapPin, FileText, Calendar, TrendingUp, Shield, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,6 +28,7 @@ const LEAD_STAGES = ['PROSPECT', 'CONTACTED', 'PROPOSAL_SENT', 'WON', 'LOST'];
 const CLIENT_STATUSES = ['ACTIVE', 'INACTIVE', 'PROSPECT'];
 
 function CrmDetailPage() {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [isEditMode, setIsEditMode] = React.useState(false);
     const [editData, setEditData] = React.useState<Partial<CrmClient>>({});
@@ -85,7 +86,16 @@ const { data: allUsers = [] } = useQuery<UserType[]>({
 
   return (
     <ContentSection>
-      <PageHeader title="CRM Details" subtitle={client ? client.name : id} />
+      <PageHeader 
+        title="CRM Details" 
+        subtitle={client ? client.name : id}
+        primaryAction={
+          <Button variant="outline" size="sm" onClick={() => navigate('/app/crm')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to CRM
+          </Button>
+        }
+      />
       <div className="mt-8 space-y-6 max-w-6xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[400px]">

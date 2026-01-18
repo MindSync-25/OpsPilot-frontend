@@ -62,13 +62,13 @@ export default function AdvancedAnalytics() {
 
   // Calculate actual averages from profitability data
   const avgRevenue = profitabilityTrend.length > 0
-    ? profitabilityTrend.reduce((sum, item) => sum + (Number(item.revenue) || 0), 0) / profitabilityTrend.length
+    ? profitabilityTrend.reduce((sum: number, item: any) => sum + (Number(item.revenue) || 0), 0) / profitabilityTrend.length
     : 0
   const avgCost = profitabilityTrend.length > 0
-    ? profitabilityTrend.reduce((sum, item) => sum + (Number(item.cost) || 0), 0) / profitabilityTrend.length
+    ? profitabilityTrend.reduce((sum: number, item: any) => sum + (Number(item.cost) || 0), 0) / profitabilityTrend.length
     : 0
   const avgMargin = profitabilityTrend.length > 0
-    ? profitabilityTrend.reduce((sum, item) => sum + (Number(item.margin) || 0), 0) / profitabilityTrend.length
+    ? profitabilityTrend.reduce((sum: number, item: any) => sum + (Number(item.margin) || 0), 0) / profitabilityTrend.length
     : 0
 
   return (
@@ -108,9 +108,9 @@ export default function AdvancedAnalytics() {
 
       {/* Predictive KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpiMetrics.map((metric) => {
+        {kpiMetrics.map((metric: any) => {
           // Map icon name to component
-          const iconMap: Record<string, any> = {
+          const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
             Target,
             Users,
             Zap,
@@ -359,7 +359,7 @@ export default function AdvancedAnalytics() {
                     </tr>
                   </thead>
                   <tbody>
-                    {cohortAnalysis.map((row) => (
+                    {cohortAnalysis.map((row: any) => (
                       <tr key={row.cohort} className="border-b">
                         <td className="p-2 font-medium">{row.cohort}</td>
                         <td className="text-center p-2">
@@ -541,7 +541,7 @@ export default function AdvancedAnalytics() {
                 </RadarChart>
               </ResponsiveContainer>
               <div className="mt-4 grid grid-cols-2 gap-4">
-                {performanceMetrics.map((metric) => (
+                {performanceMetrics.map((metric: any) => (
                   <div key={metric.metric} className="flex items-center justify-between p-3 border rounded-lg">
                     <span className="font-medium">{metric.metric}</span>
                     <div className="flex items-center gap-2">
@@ -591,13 +591,13 @@ export default function AdvancedAnalytics() {
                   </p>
                 ) : (
                   <div className="space-y-2 text-sm">
-                    {resourceUtilization.some(r => r.actual > r.planned) && (
+                    {resourceUtilization.some((r: any) => r.actual > r.planned) && (
                       <div className="flex items-start gap-2">
                         <span className="text-green-600 font-bold">✓</span>
                         <span>Some teams exceeding planned capacity. Consider workload balancing.</span>
                       </div>
                     )}
-                    {resourceUtilization.some(r => r.actual < r.planned * 0.8) && (
+                    {resourceUtilization.some((r: any) => r.actual < r.planned * 0.8) && (
                       <div className="flex items-start gap-2">
                         <span className="text-amber-600 font-bold">!</span>
                         <span>Some teams under-utilized. Optimize resource allocation.</span>
