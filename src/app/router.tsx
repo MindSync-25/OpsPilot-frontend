@@ -30,6 +30,8 @@ import Pricing from '@/pages/Pricing.tsx'
 import Home from '@/pages/Home.tsx'
 import Features from '@/pages/Features.tsx'
 import About from '@/pages/About.tsx'
+import AdminLogin from '@/pages/AdminLogin.tsx'
+import AdminDashboard from '@/pages/AdminDashboard.tsx'
 
 // Protected route wrapper
 const ProtectedRoute = () => {
@@ -249,6 +251,20 @@ export const router = createBrowserRouter([
             <Billing />
           </RoleGuard>
         ),
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <PublicRoute />,
+    children: [
+      {
+        path: 'login',
+        element: <AdminLogin />,
+      },
+      {
+        path: 'dashboard',
+        element: <AdminDashboard />,
       },
     ],
   },
